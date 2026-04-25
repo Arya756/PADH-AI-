@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>AI Course Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0a0b0f;--surface:#12141a;--surface2:#1a1d27;--surface3:#22263a;
+  --border:#2a2f45;--accent:#6c63ff;--accent2:#a78bfa;--accent3:#38bdf8;
+  --green:#34d399;--orange:#fb923c;--pink:#f472b6;--red:#f87171;
+  --yellow:#fbbf24;--teal:#2dd4bf;--text:#f1f5f9;--muted:#64748b;--dim:#94a3b8;
+}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+
+/* ── Header ── */
+header{padding:1.5rem 2rem;display:flex;align-items:center;gap:1rem;border-bottom:1px solid var(--border);background:rgba(10,11,15,.9);backdrop-filter:blur(12px);position:sticky;top:0;z-index:100}
+.logo{width:36px;height:36px;background:linear-gradient(135deg,var(--accent),var(--accent3));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem}
+header h1{font-size:1.2rem;font-weight:700;background:linear-gradient(135deg,#fff,var(--accent2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.badge{margin-left:auto;padding:.25rem .75rem;background:rgba(108,99,255,.15);border:1px solid rgba(108,99,255,.3);border-radius:20px;font-size:.7rem;color:var(--accent2);font-weight:600;letter-spacing:.05em}
+
+/* ── Layout ── */
+.main{max-width:1100px;margin:0 auto;padding:2.5rem 1.5rem}
+
+/* ── Input Section ── */
+.input-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:2rem;margin-bottom:2rem;position:relative;overflow:hidden}
+.input-card::before{content:'';position:absolute;top:-60px;right:-60px;width:200px;height:200px;background:radial-gradient(circle,rgba(108,99,255,.15),transparent 70%);pointer-events:none}
+.input-card h2{font-size:1rem;font-weight:600;color:var(--dim);text-transform:uppercase;letter-spacing:.1em;margin-bottom:1.25rem;display:flex;align-items:center;gap:.5rem}
+.input-card h2 span{width:6px;height:6px;background:var(--accent);border-radius:50%;display:inline-block}
+textarea{width:100%;min-height:140px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:1rem 1.25rem;color:var(--text);font-family:'Inter',sans-serif;font-size:.9rem;resize:vertical;outline:none;transition:border-color .2s,box-shadow .2s;line-height:1.6}
+textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(108,99,255,.1)}
+textarea::placeholder{color:var(--muted)}
+.btn-generate{margin-top:1.25rem;padding:.8rem 2rem;background:linear-gradient(135deg,var(--accent),#8b5cf6);color:#fff;border:none;border-radius:12px;font-family:'Inter',sans-serif;font-size:.9rem;font-weight:600;cursor:pointer;transition:transform .2s,box-shadow .2s,opacity .2s;display:flex;align-items:center;gap:.6rem}
+.btn-generate:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 24px rgba(108,99,255,.35)}
+.btn-generate:disabled{opacity:.5;cursor:not-allowed}
+.btn-generate .spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:none}
+.btn-generate.loading .spinner{display:block}
+.btn-generate.loading .btn-label{display:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── Pipeline ── */
+.pipeline{display:flex;align-items:center;gap:.75rem;margin-bottom:2rem;padding:1.25rem 1.5rem;background:var(--surface);border:1px solid var(--border);border-radius:16px}
+.pipeline-step{display:flex;align-items:center;gap:.6rem;flex:1}
+.step-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0;transition:all .4s}
+.step-icon.idle{background:var(--surface2);border:1px solid var(--border)}
+.step-icon.active{background:linear-gradient(135deg,var(--accent),#8b5cf6);box-shadow:0 0 16px rgba(108,99,255,.4);animation:pulse 1.5s ease-in-out infinite}
+.step-icon.done{background:linear-gradient(135deg,var(--green),#059669)}
+.step-icon.error{background:linear-gradient(135deg,var(--red),#dc2626)}
+@keyframes pulse{0%,100%{box-shadow:0 0 16px rgba(108,99,255,.4)}50%{box-shadow:0 0 28px rgba(108,99,255,.7)}}
+.step-info{flex:1}
+.step-label{font-size:.8rem;font-weight:600;color:var(--text)}
+.step-status{font-size:.72rem;color:var(--muted);margin-top:.1rem}
+.step-arrow{color:var(--muted);font-size:.9rem;flex-shrink:0}
+
+/* ── Blueprint Section ── */
+.section-title{font-size:.85rem;font-weight:600;color:var(--dim);text-transform:uppercase;letter-spacing:.1em;display:flex;align-items:center;gap:.5rem;margin-bottom:1.25rem}
+.section-title .dot{width:8px;height:8px;border-radius:50%}
+.blueprint-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:1.5rem;margin-bottom:2rem;display:none}
+.blueprint-card.visible{display:block;animation:fadeUp .4s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.blueprint-meta{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem}
+.meta-item{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:1rem}
+.meta-item .label{font-size:.72rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.08em;margin-bottom:.4rem}
+.meta-item .value{font-size:.85rem;color:var(--text);line-height:1.5}
+.meta-item .value ul{list-style:none;display:flex;flex-direction:column;gap:.2rem}
+.meta-item .value ul li::before{content:'▸ ';color:var(--accent2);font-size:.7rem}
+.events-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:.75rem}
+.event-chip{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:.85rem 1rem;display:flex;align-items:flex-start;gap:.75rem;cursor:default;transition:border-color .2s}
+.event-chip:hover{border-color:var(--accent)}
+.event-num{width:26px;height:26px;background:var(--surface3);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;color:var(--accent2);flex-shrink:0}
+.event-info .title{font-size:.82rem;font-weight:600;color:var(--text);line-height:1.3}
+.event-info .format-tag{font-size:.68rem;margin-top:.3rem;padding:.15rem .5rem;border-radius:20px;font-weight:600;display:inline-block}
+
+/* ── Content Section ── */
+.content-section{display:none}
+.content-section.visible{display:block;animation:fadeUp .4s ease}
+.content-cards{display:flex;flex-direction:column;gap:1.25rem}
+.content-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;transition:border-color .2s}
+.content-card:hover{border-color:var(--border)}
+.content-card-header{padding:1.1rem 1.5rem;display:flex;align-items:center;gap:.85rem;cursor:pointer;user-select:none}
+.content-card-header:hover{background:rgba(255,255,255,.02)}
+.event-badge{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.8rem;flex-shrink:0;color:#fff}
+.card-title{flex:1}
+.card-title .main-title{font-size:.9rem;font-weight:600;color:var(--text)}
+.card-title .sub{font-size:.75rem;color:var(--muted);margin-top:.15rem;display:flex;align-items:center;gap:.6rem}
+.format-pill{padding:.15rem .55rem;border-radius:20px;font-size:.68rem;font-weight:600}
+.duration-pill{font-size:.72rem;color:var(--muted)}
+.toggle-icon{color:var(--muted);font-size:.85rem;transition:transform .3s;flex-shrink:0}
+.toggle-icon.open{transform:rotate(180deg)}
+.content-body{padding:0 1.5rem 1.5rem;display:none}
+.content-body.open{display:block;animation:fadeUp .25s ease}
+.content-body pre{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:1.25rem;font-family:'Inter',monospace;font-size:.82rem;line-height:1.7;color:var(--dim);white-space:pre-wrap;word-break:break-word;overflow:hidden}
+.objective-bar{background:var(--surface2);border-left:3px solid var(--accent);padding:.75rem 1rem;border-radius:0 8px 8px 0;margin-bottom:.75rem;font-size:.82rem;color:var(--dim);line-height:1.5}
+
+/* ── Format colour map ── */
+.fmt-hook{background:linear-gradient(135deg,#7c3aed,#6d28d9)}
+.fmt-objectives_list{background:linear-gradient(135deg,#1d4ed8,#1e40af)}
+.fmt-quiz{background:linear-gradient(135deg,#d97706,#b45309)}
+.fmt-lecture_with_formula{background:linear-gradient(135deg,#0d9488,#0f766e)}
+.fmt-worked_example{background:linear-gradient(135deg,#059669,#047857)}
+.fmt-practice_problem{background:linear-gradient(135deg,#ca8a04,#a16207)}
+.fmt-feedback_rubric{background:linear-gradient(135deg,#dc2626,#b91c1c)}
+.fmt-assessment_task{background:linear-gradient(135deg,#db2777,#be185d)}
+.fmt-reflection_essay{background:linear-gradient(135deg,#4f46e5,#4338ca)}
+
+.pill-hook{background:rgba(124,58,237,.2);color:#a78bfa}
+.pill-objectives_list{background:rgba(29,78,216,.2);color:#93c5fd}
+.pill-quiz{background:rgba(217,119,6,.2);color:#fcd34d}
+.pill-lecture_with_formula{background:rgba(13,148,136,.2);color:#5eead4}
+.pill-worked_example{background:rgba(5,150,105,.2);color:#6ee7b7}
+.pill-practice_problem{background:rgba(202,138,4,.2);color:#fde68a}
+.pill-feedback_rubric{background:rgba(220,38,38,.2);color:#fca5a5}
+.pill-assessment_task{background:rgba(219,39,119,.2);color:#f9a8d4}
+.pill-reflection_essay{background:rgba(79,70,229,.2);color:#c7d2fe}
+
+/* ── Error ── */
+.error-toast{background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.3);border-radius:12px;padding:.85rem 1.1rem;color:var(--red);font-size:.85rem;margin-bottom:1.5rem;display:none}
+.error-toast.visible{display:flex;align-items:center;gap:.6rem;animation:fadeUp .3s ease}
+
+/* ── Loading skeleton ── */
+.skeleton{background:linear-gradient(90deg,var(--surface2) 25%,var(--surface3) 50%,var(--surface2) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;border-radius:8px;height:60px;margin-bottom:.75rem}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+/* ── Student Agent ── */
+.student-section{display:none;margin-bottom:2rem}
+.student-section.visible{display:block;animation:fadeUp .4s ease}
+.eval-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;margin-bottom:1.5rem}
+.eval-stat{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:1rem;text-align:center}
+.eval-stat .num{font-size:1.6rem;font-weight:800;line-height:1}
+.eval-stat .lbl{font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-top:.3rem}
+.eval-stat.pass .num{color:var(--green)}
+.eval-stat.fail .num{color:var(--red)}
+.eval-stat.rate .num{color:var(--accent2)}
+.student-summary-bar{background:var(--surface2);border-left:3px solid var(--yellow);padding:.75rem 1rem;border-radius:0 8px 8px 0;margin-bottom:1.25rem;font-size:.82rem;color:var(--dim);line-height:1.5}
+.attempt-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin-bottom:.75rem;overflow:hidden}
+.attempt-header{padding:.9rem 1.25rem;display:flex;align-items:center;gap:.75rem;cursor:pointer;user-select:none}
+.attempt-header:hover{background:rgba(255,255,255,.02)}
+.score-badge{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800;flex-shrink:0;color:#fff}
+.score-badge.pass{background:linear-gradient(135deg,var(--green),#059669)}
+.score-badge.fail{background:linear-gradient(135deg,var(--red),#dc2626)}
+.attempt-info{flex:1}
+.attempt-title{font-size:.88rem;font-weight:600;color:var(--text)}
+.attempt-meta{font-size:.72rem;color:var(--muted);margin-top:.15rem;display:flex;gap:.75rem;align-items:center}
+.gap-count{padding:.1rem .45rem;border-radius:20px;background:rgba(248,113,113,.15);color:var(--red);font-weight:600;font-size:.68rem}
+.attempt-body{display:none;padding:0 1.25rem 1.25rem}
+.attempt-body.open{display:block;animation:fadeUp .2s ease}
+.attempt-section{margin-top:.85rem}
+.attempt-section-title{font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.4rem}
+.attempt-text{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.75rem 1rem;font-size:.8rem;color:var(--dim);line-height:1.6;white-space:pre-wrap;word-break:break-word}
+.gap-list{display:flex;flex-direction:column;gap:.5rem;margin-top:.4rem}
+.gap-item{background:rgba(248,113,113,.07);border:1px solid rgba(248,113,113,.2);border-radius:8px;padding:.6rem .85rem;font-size:.8rem;line-height:1.5}
+.gap-item strong{color:var(--red)}
+.gap-item .excerpt{font-style:italic;color:var(--muted);font-size:.75rem;margin-top:.25rem}
+.refined-section{display:none;margin-bottom:2rem}
+.refined-section.visible{display:block;animation:fadeUp .4s ease}
+.refined-badge{display:inline-flex;align-items:center;gap:.4rem;padding:.25rem .7rem;background:rgba(251,191,36,.12);border:1px solid rgba(251,191,36,.3);border-radius:20px;font-size:.68rem;font-weight:700;color:var(--yellow);margin-bottom:.5rem}
+.refined-notes{font-size:.75rem;color:var(--muted);margin-bottom:.75rem;font-style:italic}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">🎓</div>
+  <h1>AI Course Generator</h1>
+  <div class="badge">BETA</div>
+</header>
+
+<div class="main">
+
+  <!-- Input -->
+  <div class="input-card">
+    <h2><span></span>What would you like to learn?</h2>
+    <textarea id="inputText" placeholder="Describe your course topic or paste raw learning content here…&#10;&#10;Example: I want to build a course on developing conversational AI applications using LangChain for intermediate Python developers who are familiar with basic AI concepts."></textarea>
+    <button class="btn-generate" id="generateBtn" onclick="runPipeline()">
+      <div class="spinner"></div>
+      <span class="btn-label">✨ Generate Course</span>
+    </button>
+  </div>
+
+  <!-- Pipeline status -->
+  <div class="pipeline">
+    <div class="pipeline-step">
+      <div class="step-icon idle" id="step1Icon">📝</div>
+      <div class="step-info">
+        <div class="step-label">Architecture Agent</div>
+        <div class="step-status" id="step1Status">Waiting…</div>
+      </div>
+    </div>
+    <div class="step-arrow">→</div>
+    <div class="pipeline-step">
+      <div class="step-icon idle" id="step2Icon">🔨</div>
+      <div class="step-info">
+        <div class="step-label">Content Agent</div>
+        <div class="step-status" id="step2Status">Waiting…</div>
+      </div>
+    </div>
+    <div class="step-arrow">→</div>
+    <div class="pipeline-step">
+      <div class="step-icon idle" id="step3Icon">📚</div>
+      <div class="step-info">
+        <div class="step-label">Course Ready</div>
+        <div class="step-status" id="step3Status">Waiting…</div>
+      </div>
+    </div>
+    <div class="step-arrow">→</div>
+    <div class="pipeline-step">
+      <div class="step-icon idle" id="step4Icon">🎓</div>
+      <div class="step-info">
+        <div class="step-label">Student Agent</div>
+        <div class="step-status" id="step4Status">Waiting…</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Error -->
+  <div class="error-toast" id="errorToast">⚠️ <span id="errorMsg"></span></div>
+
+  <!-- Blueprint -->
+  <div class="blueprint-card" id="blueprintCard">
+    <div class="section-title"><div class="dot" style="background:var(--accent2)"></div>Course Blueprint</div>
+    <div class="blueprint-meta" id="blueprintMeta"></div>
+    <div class="section-title" style="margin-top:1rem"><div class="dot" style="background:var(--accent3)"></div>Learning Events</div>
+    <div class="events-grid" id="eventsGrid"></div>
+  </div>
+
+  <!-- Content -->
+  <div class="content-section" id="contentSection">
+    <div class="section-title"><div class="dot" style="background:var(--green)"></div>Generated Course Content</div>
+    <div class="content-cards" id="contentCards"></div>
+  </div>
+
+  <!-- Student Evaluation -->
+  <div class="student-section" id="studentSection">
+    <div class="section-title"><div class="dot" style="background:var(--yellow)"></div>Student Agent Evaluation</div>
+    <div class="eval-summary">
+      <div class="eval-stat pass"><div class="num" id="evalPassed">—</div><div class="lbl">Passed</div></div>
+      <div class="eval-stat fail"><div class="num" id="evalFailed">—</div><div class="lbl">Failed</div></div>
+      <div class="eval-stat rate"><div class="num" id="evalRate">—</div><div class="lbl">Pass Rate</div></div>
+    </div>
+    <div class="student-summary-bar" id="evalSummary"></div>
+    <div id="attemptCards"></div>
+  </div>
+
+  <!-- Refined Content -->
+  <div class="refined-section" id="refinedSection">
+    <div class="section-title"><div class="dot" style="background:var(--orange)"></div>✨ AI-Refined Content</div>
+    <div class="content-cards" id="refinedCards"></div>
+  </div>
+
+</div>
+
+<script>
+const API = 'http://127.0.0.1:8000';
+
+const FORMAT_ICONS = {
+  hook:'🪝', objectives_list:'🎯', quiz:'❓', lecture_with_formula:'📖',
+  worked_example:'🔬', practice_problem:'🛠️', feedback_rubric:'📊',
+  assessment_task:'📝', reflection_essay:'💭'
+};
+
+function setStep(n, state, msg) {
+  const icon = document.getElementById(`step${n}Icon`);
+  const status = document.getElementById(`step${n}Status`);
+  icon.className = `step-icon ${state}`;
+  status.textContent = msg;
+}
+
+function showError(msg) {
+  const t = document.getElementById('errorToast');
+  document.getElementById('errorMsg').textContent = msg;
+  t.classList.add('visible');
+}
+
+function hideError() {
+  document.getElementById('errorToast').classList.remove('visible');
+}
+
+function fmtClass(fmt) {
+  return (fmt || 'hook').replace(/[^a-z_]/g, '');
+}
+
+function renderBlueprint(bp) {
+  const card = document.getElementById('blueprintCard');
+  const meta = document.getElementById('blueprintMeta');
+  const grid = document.getElementById('eventsGrid');
+
+  meta.innerHTML = `
+    <div class="meta-item">
+      <div class="label">Course Title</div>
+      <div class="value">${bp.course_title}</div>
+    </div>
+    <div class="meta-item">
+      <div class="label">Prerequisites</div>
+      <div class="value"><ul>${(bp.prerequisites||[]).map(p=>`<li>${p}</li>`).join('')}</ul></div>
+    </div>
+    <div class="meta-item" style="grid-column:1/-1">
+      <div class="label">Final Assessment</div>
+      <div class="value">${bp.assessment||'—'}</div>
+    </div>
+  `;
+
+  grid.innerHTML = (bp.events||[]).map(e => {
+    const f = fmtClass(e.output_format);
+    return `
+      <div class="event-chip">
+        <div class="event-num">${e.event_id}</div>
+        <div class="event-info">
+          <div class="title">${e.title}</div>
+          <span class="format-tag pill-${f}">${FORMAT_ICONS[e.output_format]||''} ${e.output_format}</span>
+          <span style="font-size:.68rem;color:var(--muted);margin-left:.4rem">⏱ ${e.estimated_duration}</span>
+        </div>
+      </div>`;
+  }).join('');
+
+  card.classList.add('visible');
+}
+
+function renderContent(data) {
+  const section = document.getElementById('contentSection');
+  const cards = document.getElementById('contentCards');
+
+  // Show skeletons first
+  cards.innerHTML = (data.content||[]).map(()=>`<div class="skeleton"></div>`).join('');
+  section.classList.add('visible');
+
+  setTimeout(() => {
+    cards.innerHTML = (data.content||[]).map((ev, i) => {
+      const f = fmtClass(ev.output_format);
+      const icon = FORMAT_ICONS[ev.output_format] || '📄';
+      const bodyId = `body-${i}`;
+      const iconId = `toggle-${i}`;
+      return `
+        <div class="content-card">
+          <div class="content-card-header" onclick="toggleCard(${i})">
+            <div class="event-badge fmt-${f}">${ev.event_id}</div>
+            <div class="card-title">
+              <div class="main-title">${ev.title}</div>
+              <div class="sub">
+                <span class="format-pill pill-${f}">${icon} ${ev.output_format}</span>
+                <span class="duration-pill">⏱ ${ev.estimated_duration}</span>
+              </div>
+            </div>
+            <div class="toggle-icon" id="${iconId}">▼</div>
+          </div>
+          <div class="content-body" id="${bodyId}">
+            <div class="objective-bar">🎯 ${ev.learning_objective}</div>
+            <pre>${escHtml(ev.content)}</pre>
+          </div>
+        </div>`;
+    }).join('');
+
+    // Auto-open first card
+    if (data.content && data.content.length > 0) toggleCard(0);
+  }, 300);
+}
+
+function toggleCard(i) {
+  const body = document.getElementById(`body-${i}`);
+  const icon = document.getElementById(`toggle-${i}`);
+  if (!body) return;
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  icon.classList.toggle('open', !isOpen);
+}
+
+function escHtml(s) {
+  return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function showSkeletons() {
+  const cards = document.getElementById('contentCards');
+  const section = document.getElementById('contentSection');
+  cards.innerHTML = Array(9).fill('<div class="skeleton"></div>').join('');
+  section.classList.add('visible');
+}
+
+async function runPipeline() {
+  const text = document.getElementById('inputText').value.trim();
+  if (!text) { showError('Please enter some content before generating.'); return; }
+
+  hideError();
+  const btn = document.getElementById('generateBtn');
+  btn.disabled = true; btn.classList.add('loading');
+
+  // Reset
+  document.getElementById('blueprintCard').classList.remove('visible');
+  document.getElementById('contentSection').classList.remove('visible');
+  document.getElementById('studentSection').classList.remove('visible');
+  document.getElementById('refinedSection').classList.remove('visible');
+  [1,2,3,4].forEach(n => setStep(n,'idle','Waiting…'));
+
+  try {
+    // ── Step 1: Architecture Agent ──────────────────────────────
+    setStep(1,'active','Analysing content & building blueprint…');
+
+    const res1 = await fetch(`${API}/generate-blueprint`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({content: text})
+    });
+
+    if (!res1.ok) throw new Error(`Architecture Agent failed (${res1.status})`);
+    const data1 = await res1.json();
+    const blueprint = data1.blueprint;
+
+    setStep(1,'done','Blueprint ready ✓');
+    renderBlueprint(blueprint);
+
+    // ── Step 2: Content Agent ───────────────────────────────────
+    setStep(2,'active','Generating content for all events…');
+    showSkeletons();
+
+    const res2 = await fetch(`${API}/generate-content`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({blueprint})
+    });
+
+    if (!res2.ok) {
+      const err = await res2.json().catch(()=>({detail:'Unknown error'}));
+      throw new Error(`Content Agent failed: ${JSON.stringify(err.detail)}`);
+    }
+    const data2 = await res2.json();
+
+    setStep(2,'done','All events generated ✓');
+
+    // ── Step 3: Done ────────────────────────────────────────────
+    setStep(3,'done',`${data2.content.length} events ready ✓`);
+    renderContent(data2);
+
+    // ── Step 4: Student Agent ────────────────────────────────────
+    setStep(4,'active','Simulated student attempting exercises…');
+
+    const res3 = await fetch(`${API}/evaluate-and-refine`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({course_content: data2})
+    });
+
+    if (!res3.ok) {
+      const err3 = await res3.json().catch(()=>({detail:'Unknown error'}));
+      throw new Error(`Student Agent failed: ${JSON.stringify(err3.detail)}`);
+    }
+    const data3 = await res3.json();
+
+    const passEmoji = data3.failure_log.overall_passed ? '✅' : '⚠️';
+    setStep(4,'done',`${passEmoji} ${Math.round(data3.final_pass_rate*100)}% pass rate`);
+    renderEvaluation(data3);
+    if (data3.refined_events && data3.refined_events.length > 0) {
+      renderRefined(data3);
+    }
+
+  } catch(err) {
+    showError(err.message);
+    [1,2,3,4].forEach(n => {
+      const el = document.getElementById(`step${n}Icon`);
+      if (el.classList.contains('active')) setStep(n,'error','Failed');
+    });
+  } finally {
+    btn.disabled = false; btn.classList.remove('loading');
+  }
+}
+
+function renderEvaluation(data) {
+  const fl = data.failure_log;
+  document.getElementById('evalPassed').textContent = fl.passed_events;
+  document.getElementById('evalFailed').textContent  = fl.failed_events;
+  document.getElementById('evalRate').textContent    = Math.round(fl.pass_rate * 100) + '%';
+  document.getElementById('evalSummary').textContent = fl.summary;
+
+  const container = document.getElementById('attemptCards');
+  container.innerHTML = (data.attempts || []).map((a, i) => {
+    const passClass = a.passed ? 'pass' : 'fail';
+    const scoreStr  = Math.round(a.comprehension_score * 100) + '%';
+    const gapCount  = a.concept_gaps ? a.concept_gaps.length : 0;
+    const bodyId    = `attempt-body-${i}`;
+    const gaps = (a.concept_gaps || []).map(g => `
+      <div class="gap-item">
+        <strong>⚡ ${escHtml(g.concept)}</strong> — ${escHtml(g.reason)}
+        ${g.excerpt ? `<div class="excerpt">"${escHtml(g.excerpt)}"</div>` : ''}
+      </div>`).join('');
+    return `
+      <div class="attempt-card">
+        <div class="attempt-header" onclick="toggleAttempt(${i})">
+          <div class="score-badge ${passClass}">${scoreStr}</div>
+          <div class="attempt-info">
+            <div class="attempt-title">${escHtml(a.title)}</div>
+            <div class="attempt-meta">
+              <span>${a.passed ? '✅ Passed' : '❌ Failed'}</span>
+              ${gapCount > 0 ? `<span class="gap-count">${gapCount} gap${gapCount>1?'s':''}</span>` : ''}
+              <span>${escHtml(a.output_format)}</span>
+            </div>
+          </div>
+          <div class="toggle-icon" id="atoggle-${i}">▼</div>
+        </div>
+        <div class="attempt-body" id="${bodyId}">
+          <div class="attempt-section">
+            <div class="attempt-section-title">📝 Student's Answer</div>
+            <div class="attempt-text">${escHtml(a.student_answer)}</div>
+          </div>
+          <div class="attempt-section">
+            <div class="attempt-section-title">💬 Tutor Feedback</div>
+            <div class="attempt-text">${escHtml(a.feedback)}</div>
+          </div>
+          ${gapCount > 0 ? `
+          <div class="attempt-section">
+            <div class="attempt-section-title">🔍 Concept Gaps (${gapCount})</div>
+            <div class="gap-list">${gaps}</div>
+          </div>` : ''}
+        </div>
+      </div>`;
+  }).join('');
+
+  document.getElementById('studentSection').classList.add('visible');
+}
+
+function toggleAttempt(i) {
+  const body = document.getElementById(`attempt-body-${i}`);
+  const icon = document.getElementById(`atoggle-${i}`);
+  if (!body) return;
+  const open = body.classList.contains('open');
+  body.classList.toggle('open', !open);
+  icon.classList.toggle('open', !open);
+}
+
+function renderRefined(data) {
+  const container = document.getElementById('refinedCards');
+  container.innerHTML = (data.refined_events || []).map((ev, i) => {
+    const f = fmtClass(ev.output_format);
+    const icon = FORMAT_ICONS[ev.output_format] || '📄';
+    const bodyId  = `rbody-${i}`;
+    const iconId  = `rtoggle-${i}`;
+    return `
+      <div class="content-card">
+        <div class="content-card-header" onclick="toggleRefined(${i})">
+          <div class="event-badge fmt-${f}">${ev.event_id}</div>
+          <div class="card-title">
+            <div class="main-title">${escHtml(ev.title)}</div>
+            <div class="sub">
+              <span class="refined-badge">✨ Refined</span>
+              <span class="format-pill pill-${f}">${icon} ${ev.output_format}</span>
+            </div>
+          </div>
+          <div class="toggle-icon" id="${iconId}">▼</div>
+        </div>
+        <div class="content-body" id="${bodyId}">
+          <div class="refined-notes">📋 ${escHtml(ev.refinement_notes)}</div>
+          <div class="objective-bar">🎯 ${escHtml(ev.learning_objective)}</div>
+          <pre>${escHtml(ev.content)}</pre>
+        </div>
+      </div>`;
+  }).join('');
+
+  document.getElementById('refinedSection').classList.add('visible');
+}
+
+function toggleRefined(i) {
+  const body = document.getElementById(`rbody-${i}`);
+  const icon = document.getElementById(`rtoggle-${i}`);
+  if (!body) return;
+  const open = body.classList.contains('open');
+  body.classList.toggle('open', !open);
+  icon.classList.toggle('open', !open);
+}
+
+// Allow Ctrl+Enter to submit
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') runPipeline();
+});
+</script>
+</body>
+</html>
