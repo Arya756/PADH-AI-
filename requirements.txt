@@ -1,6 +1,10 @@
+fastapi
+uvicorn[standard]
+groq
+openai
+tavily-python
+pydantic
+python-dotenv
 sentence-transformers
 faiss-cpu
 httpx
-pydantic
-openai
-tavily-python
