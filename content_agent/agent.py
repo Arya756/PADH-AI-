@@ -76,18 +76,30 @@ def _web_search(query: str, max_results: int = 3) -> str:
         return ""
 
 
+import time
+
 def _call_llm(system_prompt: str, user_prompt: str, temperature: float = 0.4) -> str:
-    """Single LLM call via Groq. Returns the raw text content."""
-    response = groq_client.chat.completions.create(
-        model=LLM_MODEL,
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt},
-        ],
-        temperature=temperature,
-        max_tokens=2048,
-    )
-    return response.choices[0].message.content.strip()
+    """Single LLM call via Groq. Returns the raw text content. Handles rate limits with backoff."""
+    for attempt in range(3):
+        try:
+            response = groq_client.chat.completions.create(
+                model=LLM_MODEL,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt},
+                ],
+                temperature=temperature,
+                max_tokens=2048,
+            )
+            return response.choices[0].message.content.strip()
+        except Exception as e:
+            if "rate_limit" in str(e).lower() or "429" in str(e):
+                logger.warning(f"Rate limit hit. Sleeping for 4s... (Attempt {attempt+1}/3)")
+                time.sleep(4)
+                continue
+            raise e
+    
+    return ""
 
 
 def _generate_for_event(event, course_title: str) -> dict:
@@ -104,7 +116,7 @@ def _generate_for_event(event, course_title: str) -> dict:
     web_context = ""
     if output_format in WEB_SEARCH_FORMATS and _tavily_client:
         search_query = (
-            f"{course_title} {event.title} LangChain conversational AI real-world example"
+            f"{course_title} {event.title} technical depth {event.technical_depth} real-world application"
         )
         web_context = _web_search(search_query)
         if web_context:
@@ -192,8 +204,8 @@ def generate_content(blueprint) -> dict:
 
     results: List[dict] = []
 
-    # Parallel generation — up to 4 concurrent event generations
-    with ThreadPoolExecutor(max_workers=4) as executor:
+    # Parallel generation — up to 2 concurrent event generations to respect TPM limits
+    with ThreadPoolExecutor(max_workers=2) as executor:
         future_to_event = {
             executor.submit(_generate_for_event, event, course_title): event
             for event in events

@@ -1,495 +1,1404 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>AI Course Generator</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
-<style>
-*{margin:0;padding:0;box-sizing:border-box}
-:root{
-  --bg:#0a0b0f;--surface:#12141a;--surface2:#1a1d27;--surface3:#22263a;
-  --border:#2a2f45;--accent:#6c63ff;--accent2:#a78bfa;--accent3:#38bdf8;
-  --green:#34d399;--orange:#fb923c;--pink:#f472b6;--red:#f87171;
-  --yellow:#fbbf24;--teal:#2dd4bf;--text:#f1f5f9;--muted:#64748b;--dim:#94a3b8;
-}
-body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>PADH-AI</title>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
-/* ── Header ── */
-header{padding:1.5rem 2rem;display:flex;align-items:center;gap:1rem;border-bottom:1px solid var(--border);background:rgba(10,11,15,.9);backdrop-filter:blur(12px);position:sticky;top:0;z-index:100}
-.logo{width:36px;height:36px;background:linear-gradient(135deg,var(--accent),var(--accent3));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem}
-header h1{font-size:1.2rem;font-weight:700;background:linear-gradient(135deg,#fff,var(--accent2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
-.badge{margin-left:auto;padding:.25rem .75rem;background:rgba(108,99,255,.15);border:1px solid rgba(108,99,255,.3);border-radius:20px;font-size:.7rem;color:var(--accent2);font-weight:600;letter-spacing:.05em}
+    :root {
+      --bg: #f5f3ef;
+      --bg2: #ede9e3;
+      --surface: #faf9f6;
+      --surface2: #f0ede7;
+      --surface3: #e5e0d8;
+      --border: rgba(120, 100, 70, 0.15);
+      --border-strong: rgba(120, 100, 70, 0.28);
+      --accent: #5b4fcf;
+      --accent2: #8b75e8;
+      --accent3: #3b9eca;
+      --green: #2d9e6e;
+      --orange: #d4872a;
+      --pink: #c2546a;
+      --red: #c94040;
+      --yellow: #c49b2e;
+      --teal: #2a9b8e;
+      --text: #2a2118;
+      --text2: #4a3f32;
+      --muted: #7a6f62;
+      --dim: #9a8e82;
+      --shadow-sm: 0 2px 8px rgba(60,40,20,.07);
+      --shadow: 0 6px 24px rgba(60,40,20,.10);
+      --shadow-lg: 0 16px 48px rgba(60,40,20,.14);
+      --shadow-3d: 0 20px 60px rgba(60,40,20,.18), 0 8px 16px rgba(60,40,20,.10);
+      --radius: 18px;
+      --font-display: 'Playfair Display', Georgia, serif;
+      --font-body: 'DM Sans', sans-serif;
+      --font-mono: 'DM Mono', monospace;
+    }
 
-/* ── Layout ── */
-.main{max-width:1100px;margin:0 auto;padding:2.5rem 1.5rem}
+    /* ───── BODY & BACKGROUND ───── */
+    body {
+      font-family: var(--font-body);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+      font-weight: 300;
+    }
 
-/* ── Input Section ── */
-.input-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:2rem;margin-bottom:2rem;position:relative;overflow:hidden}
-.input-card::before{content:'';position:absolute;top:-60px;right:-60px;width:200px;height:200px;background:radial-gradient(circle,rgba(108,99,255,.15),transparent 70%);pointer-events:none}
-.input-card h2{font-size:1rem;font-weight:600;color:var(--dim);text-transform:uppercase;letter-spacing:.1em;margin-bottom:1.25rem;display:flex;align-items:center;gap:.5rem}
-.input-card h2 span{width:6px;height:6px;background:var(--accent);border-radius:50%;display:inline-block}
-textarea{width:100%;min-height:140px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:1rem 1.25rem;color:var(--text);font-family:'Inter',sans-serif;font-size:.9rem;resize:vertical;outline:none;transition:border-color .2s,box-shadow .2s;line-height:1.6}
-textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(108,99,255,.1)}
-textarea::placeholder{color:var(--muted)}
-.btn-generate{margin-top:1.25rem;padding:.8rem 2rem;background:linear-gradient(135deg,var(--accent),#8b5cf6);color:#fff;border:none;border-radius:12px;font-family:'Inter',sans-serif;font-size:.9rem;font-weight:600;cursor:pointer;transition:transform .2s,box-shadow .2s,opacity .2s;display:flex;align-items:center;gap:.6rem}
-.btn-generate:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 24px rgba(108,99,255,.35)}
-.btn-generate:disabled{opacity:.5;cursor:not-allowed}
-.btn-generate .spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:none}
-.btn-generate.loading .spinner{display:block}
-.btn-generate.loading .btn-label{display:none}
-@keyframes spin{to{transform:rotate(360deg)}}
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 800px 600px at 15% 20%, rgba(91,79,207,.06) 0%, transparent 60%),
+        radial-gradient(ellipse 600px 500px at 85% 75%, rgba(59,158,202,.06) 0%, transparent 60%),
+        radial-gradient(ellipse 400px 400px at 50% 50%, rgba(196,155,46,.04) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
 
-/* ── Pipeline ── */
-.pipeline{display:flex;align-items:center;gap:.75rem;margin-bottom:2rem;padding:1.25rem 1.5rem;background:var(--surface);border:1px solid var(--border);border-radius:16px}
-.pipeline-step{display:flex;align-items:center;gap:.6rem;flex:1}
-.step-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0;transition:all .4s}
-.step-icon.idle{background:var(--surface2);border:1px solid var(--border)}
-.step-icon.active{background:linear-gradient(135deg,var(--accent),#8b5cf6);box-shadow:0 0 16px rgba(108,99,255,.4);animation:pulse 1.5s ease-in-out infinite}
-.step-icon.done{background:linear-gradient(135deg,var(--green),#059669)}
-.step-icon.error{background:linear-gradient(135deg,var(--red),#dc2626)}
-@keyframes pulse{0%,100%{box-shadow:0 0 16px rgba(108,99,255,.4)}50%{box-shadow:0 0 28px rgba(108,99,255,.7)}}
-.step-info{flex:1}
-.step-label{font-size:.8rem;font-weight:600;color:var(--text)}
-.step-status{font-size:.72rem;color:var(--muted);margin-top:.1rem}
-.step-arrow{color:var(--muted);font-size:.9rem;flex-shrink:0}
+    /* Subtle grain texture overlay */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.4;
+    }
 
-/* ── Blueprint Section ── */
-.section-title{font-size:.85rem;font-weight:600;color:var(--dim);text-transform:uppercase;letter-spacing:.1em;display:flex;align-items:center;gap:.5rem;margin-bottom:1.25rem}
-.section-title .dot{width:8px;height:8px;border-radius:50%}
-.blueprint-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:1.5rem;margin-bottom:2rem;display:none}
-.blueprint-card.visible{display:block;animation:fadeUp .4s ease}
-@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
-.blueprint-meta{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem}
-.meta-item{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:1rem}
-.meta-item .label{font-size:.72rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.08em;margin-bottom:.4rem}
-.meta-item .value{font-size:.85rem;color:var(--text);line-height:1.5}
-.meta-item .value ul{list-style:none;display:flex;flex-direction:column;gap:.2rem}
-.meta-item .value ul li::before{content:'▸ ';color:var(--accent2);font-size:.7rem}
-.events-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:.75rem}
-.event-chip{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:.85rem 1rem;display:flex;align-items:flex-start;gap:.75rem;cursor:default;transition:border-color .2s}
-.event-chip:hover{border-color:var(--accent)}
-.event-num{width:26px;height:26px;background:var(--surface3);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;color:var(--accent2);flex-shrink:0}
-.event-info .title{font-size:.82rem;font-weight:600;color:var(--text);line-height:1.3}
-.event-info .format-tag{font-size:.68rem;margin-top:.3rem;padding:.15rem .5rem;border-radius:20px;font-weight:600;display:inline-block}
+    .main { position: relative; z-index: 1; }
+    header { position: relative; z-index: 10; }
 
-/* ── Content Section ── */
-.content-section{display:none}
-.content-section.visible{display:block;animation:fadeUp .4s ease}
-.content-cards{display:flex;flex-direction:column;gap:1.25rem}
-.content-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;transition:border-color .2s}
-.content-card:hover{border-color:var(--border)}
-.content-card-header{padding:1.1rem 1.5rem;display:flex;align-items:center;gap:.85rem;cursor:pointer;user-select:none}
-.content-card-header:hover{background:rgba(255,255,255,.02)}
-.event-badge{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.8rem;flex-shrink:0;color:#fff}
-.card-title{flex:1}
-.card-title .main-title{font-size:.9rem;font-weight:600;color:var(--text)}
-.card-title .sub{font-size:.75rem;color:var(--muted);margin-top:.15rem;display:flex;align-items:center;gap:.6rem}
-.format-pill{padding:.15rem .55rem;border-radius:20px;font-size:.68rem;font-weight:600}
-.duration-pill{font-size:.72rem;color:var(--muted)}
-.toggle-icon{color:var(--muted);font-size:.85rem;transition:transform .3s;flex-shrink:0}
-.toggle-icon.open{transform:rotate(180deg)}
-.content-body{padding:0 1.5rem 1.5rem;display:none}
-.content-body.open{display:block;animation:fadeUp .25s ease}
-.content-body pre{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:1.25rem;font-family:'Inter',monospace;font-size:.82rem;line-height:1.7;color:var(--dim);white-space:pre-wrap;word-break:break-word;overflow:hidden}
-.objective-bar{background:var(--surface2);border-left:3px solid var(--accent);padding:.75rem 1rem;border-radius:0 8px 8px 0;margin-bottom:.75rem;font-size:.82rem;color:var(--dim);line-height:1.5}
+    /* ───── HEADER ───── */
+    header {
+      padding: 1.4rem 2.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      background: rgba(250,249,246,.88);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+    }
 
-/* ── Format colour map ── */
-.fmt-hook{background:linear-gradient(135deg,#7c3aed,#6d28d9)}
-.fmt-objectives_list{background:linear-gradient(135deg,#1d4ed8,#1e40af)}
-.fmt-quiz{background:linear-gradient(135deg,#d97706,#b45309)}
-.fmt-lecture_with_formula{background:linear-gradient(135deg,#0d9488,#0f766e)}
-.fmt-worked_example{background:linear-gradient(135deg,#059669,#047857)}
-.fmt-practice_problem{background:linear-gradient(135deg,#ca8a04,#a16207)}
-.fmt-feedback_rubric{background:linear-gradient(135deg,#dc2626,#b91c1c)}
-.fmt-assessment_task{background:linear-gradient(135deg,#db2777,#be185d)}
-.fmt-reflection_essay{background:linear-gradient(135deg,#4f46e5,#4338ca)}
+    .logo-3d {
+      width: 42px;
+      height: 42px;
+      position: relative;
+      perspective: 100px;
+      flex-shrink: 0;
+    }
+    .logo-3d-inner {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #5b4fcf 0%, #3b9eca 100%);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      box-shadow: 0 4px 12px rgba(91,79,207,.35), inset 0 1px 0 rgba(255,255,255,.25);
+      transform: rotateX(6deg) rotateY(-4deg);
+      transition: transform .4s cubic-bezier(.34,1.56,.64,1), box-shadow .4s ease;
+    }
+    .logo-3d:hover .logo-3d-inner {
+      transform: rotateX(-4deg) rotateY(8deg) scale(1.05);
+      box-shadow: 0 8px 24px rgba(91,79,207,.45), inset 0 1px 0 rgba(255,255,255,.3);
+    }
 
-.pill-hook{background:rgba(124,58,237,.2);color:#a78bfa}
-.pill-objectives_list{background:rgba(29,78,216,.2);color:#93c5fd}
-.pill-quiz{background:rgba(217,119,6,.2);color:#fcd34d}
-.pill-lecture_with_formula{background:rgba(13,148,136,.2);color:#5eead4}
-.pill-worked_example{background:rgba(5,150,105,.2);color:#6ee7b7}
-.pill-practice_problem{background:rgba(202,138,4,.2);color:#fde68a}
-.pill-feedback_rubric{background:rgba(220,38,38,.2);color:#fca5a5}
-.pill-assessment_task{background:rgba(219,39,119,.2);color:#f9a8d4}
-.pill-reflection_essay{background:rgba(79,70,229,.2);color:#c7d2fe}
+    header h1 {
+      font-family: var(--font-display);
+      font-size: 1.35rem;
+      font-weight: 500;
+      color: var(--text);
+      letter-spacing: 0.01em;
+    }
+    header h1 span { color: var(--accent); }
 
-/* ── Error ── */
-.error-toast{background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.3);border-radius:12px;padding:.85rem 1.1rem;color:var(--red);font-size:.85rem;margin-bottom:1.5rem;display:none}
-.error-toast.visible{display:flex;align-items:center;gap:.6rem;animation:fadeUp .3s ease}
+    .header-tagline {
+      font-size: .72rem;
+      color: var(--muted);
+      font-weight: 300;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
 
-/* ── Loading skeleton ── */
-.skeleton{background:linear-gradient(90deg,var(--surface2) 25%,var(--surface3) 50%,var(--surface2) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;border-radius:8px;height:60px;margin-bottom:.75rem}
-@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+    .badge {
+      margin-left: auto;
+      padding: .3rem .85rem;
+      background: linear-gradient(135deg, rgba(91,79,207,.1), rgba(59,158,202,.1));
+      border: 1px solid rgba(91,79,207,.2);
+      border-radius: 30px;
+      font-size: .65rem;
+      color: var(--accent);
+      font-weight: 500;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
 
-/* ── Student Agent ── */
-.student-section{display:none;margin-bottom:2rem}
-.student-section.visible{display:block;animation:fadeUp .4s ease}
-.eval-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;margin-bottom:1.5rem}
-.eval-stat{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:1rem;text-align:center}
-.eval-stat .num{font-size:1.6rem;font-weight:800;line-height:1}
-.eval-stat .lbl{font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-top:.3rem}
-.eval-stat.pass .num{color:var(--green)}
-.eval-stat.fail .num{color:var(--red)}
-.eval-stat.rate .num{color:var(--accent2)}
-.student-summary-bar{background:var(--surface2);border-left:3px solid var(--yellow);padding:.75rem 1rem;border-radius:0 8px 8px 0;margin-bottom:1.25rem;font-size:.82rem;color:var(--dim);line-height:1.5}
-.attempt-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin-bottom:.75rem;overflow:hidden}
-.attempt-header{padding:.9rem 1.25rem;display:flex;align-items:center;gap:.75rem;cursor:pointer;user-select:none}
-.attempt-header:hover{background:rgba(255,255,255,.02)}
-.score-badge{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800;flex-shrink:0;color:#fff}
-.score-badge.pass{background:linear-gradient(135deg,var(--green),#059669)}
-.score-badge.fail{background:linear-gradient(135deg,var(--red),#dc2626)}
-.attempt-info{flex:1}
-.attempt-title{font-size:.88rem;font-weight:600;color:var(--text)}
-.attempt-meta{font-size:.72rem;color:var(--muted);margin-top:.15rem;display:flex;gap:.75rem;align-items:center}
-.gap-count{padding:.1rem .45rem;border-radius:20px;background:rgba(248,113,113,.15);color:var(--red);font-weight:600;font-size:.68rem}
-.attempt-body{display:none;padding:0 1.25rem 1.25rem}
-.attempt-body.open{display:block;animation:fadeUp .2s ease}
-.attempt-section{margin-top:.85rem}
-.attempt-section-title{font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.4rem}
-.attempt-text{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.75rem 1rem;font-size:.8rem;color:var(--dim);line-height:1.6;white-space:pre-wrap;word-break:break-word}
-.gap-list{display:flex;flex-direction:column;gap:.5rem;margin-top:.4rem}
-.gap-item{background:rgba(248,113,113,.07);border:1px solid rgba(248,113,113,.2);border-radius:8px;padding:.6rem .85rem;font-size:.8rem;line-height:1.5}
-.gap-item strong{color:var(--red)}
-.gap-item .excerpt{font-style:italic;color:var(--muted);font-size:.75rem;margin-top:.25rem}
-.refined-section{display:none;margin-bottom:2rem}
-.refined-section.visible{display:block;animation:fadeUp .4s ease}
-.refined-badge{display:inline-flex;align-items:center;gap:.4rem;padding:.25rem .7rem;background:rgba(251,191,36,.12);border:1px solid rgba(251,191,36,.3);border-radius:20px;font-size:.68rem;font-weight:700;color:var(--yellow);margin-bottom:.5rem}
-.refined-notes{font-size:.75rem;color:var(--muted);margin-bottom:.75rem;font-style:italic}
-</style>
+    /* ───── LAYOUT ───── */
+    .main {
+      max-width: 1060px;
+      margin: 0 auto;
+      padding: 3rem 1.5rem 5rem;
+    }
+
+    /* ───── HERO SECTION ───── */
+    .hero-text {
+      text-align: center;
+      margin-bottom: 2.5rem;
+      animation: riseUp .9s cubic-bezier(.16,1,.3,1) both;
+    }
+    .hero-text h2 {
+      font-family: var(--font-display);
+      font-size: 2.4rem;
+      font-weight: 400;
+      color: var(--text);
+      line-height: 1.2;
+      margin-bottom: .6rem;
+    }
+    .hero-text h2 em {
+      font-style: italic;
+      color: var(--accent);
+    }
+    .hero-text p {
+      font-size: .88rem;
+      color: var(--muted);
+      font-weight: 300;
+      letter-spacing: .03em;
+    }
+
+    /* ───── INPUT CARD (3D) ───── */
+    .input-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 2.25rem;
+      margin-bottom: 1.75rem;
+      box-shadow: var(--shadow-3d);
+      position: relative;
+      overflow: hidden;
+      animation: riseUp .9s cubic-bezier(.16,1,.3,1) .1s both;
+      transform-style: preserve-3d;
+      transition: transform .4s ease, box-shadow .4s ease;
+    }
+    .input-card:hover {
+      transform: translateY(-3px) rotateX(1deg);
+      box-shadow: 0 28px 70px rgba(60,40,20,.16), 0 8px 20px rgba(60,40,20,.10);
+    }
+
+    /* Decorative corner blobs */
+    .input-card::before {
+      content: '';
+      position: absolute;
+      width: 220px; height: 220px;
+      top: -80px; right: -80px;
+      background: radial-gradient(circle, rgba(91,79,207,.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .input-card::after {
+      content: '';
+      position: absolute;
+      width: 160px; height: 160px;
+      bottom: -60px; left: -60px;
+      background: radial-gradient(circle, rgba(59,158,202,.07) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .input-label {
+      font-size: .7rem;
+      font-weight: 400;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .14em;
+      display: flex;
+      align-items: center;
+      gap: .65rem;
+      margin-bottom: 1.25rem;
+    }
+    .input-label::before {
+      content: '';
+      display: inline-block;
+      width: 22px; height: 1px;
+      background: var(--accent);
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 130px;
+      background: var(--bg);
+      border: 1px solid var(--border-strong);
+      border-radius: 12px;
+      padding: 1.1rem 1.4rem;
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: .88rem;
+      font-weight: 300;
+      resize: vertical;
+      outline: none;
+      transition: border-color .25s, box-shadow .25s, background .25s;
+      line-height: 1.7;
+      position: relative;
+      z-index: 1;
+    }
+    textarea:focus {
+      border-color: var(--accent);
+      background: var(--surface);
+      box-shadow: 0 0 0 4px rgba(91,79,207,.08), 0 4px 16px rgba(91,79,207,.06);
+    }
+    textarea::placeholder { color: var(--dim); font-weight: 300; }
+
+    .btn-generate {
+      margin-top: 1.25rem;
+      padding: .85rem 2.2rem;
+      background: linear-gradient(135deg, var(--accent) 0%, #7b6de8 50%, var(--accent3) 100%);
+      background-size: 200% 100%;
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-family: var(--font-body);
+      font-size: .88rem;
+      font-weight: 400;
+      letter-spacing: .04em;
+      cursor: pointer;
+      transition: transform .3s cubic-bezier(.34,1.56,.64,1), box-shadow .3s ease, background-position .4s ease;
+      display: flex;
+      align-items: center;
+      gap: .65rem;
+      position: relative;
+      z-index: 1;
+      box-shadow: 0 4px 16px rgba(91,79,207,.3), inset 0 1px 0 rgba(255,255,255,.15);
+    }
+    .btn-generate:hover:not(:disabled) {
+      transform: translateY(-3px) scale(1.02);
+      box-shadow: 0 10px 30px rgba(91,79,207,.4), inset 0 1px 0 rgba(255,255,255,.2);
+      background-position: 100% 0;
+    }
+    .btn-generate:active:not(:disabled) { transform: translateY(0) scale(0.98); }
+    .btn-generate:disabled { opacity: .45; cursor: not-allowed; }
+
+    .btn-generate .spinner {
+      width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      display: none;
+    }
+    .btn-generate.loading .spinner { display: block; }
+    .btn-generate.loading .btn-label { display: none; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes riseUp {
+      from { opacity: 0; transform: translateY(28px) scale(.97); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    /* ───── PIPELINE ───── */
+    .pipeline {
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+      margin-bottom: 2rem;
+      padding: 1.2rem 1.6rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      animation: riseUp .9s cubic-bezier(.16,1,.3,1) .2s both;
+      overflow-x: auto;
+    }
+
+    .pipeline-step { display: flex; align-items: center; gap: .65rem; flex: 1; min-width: 130px; }
+    .step-icon {
+      width: 38px; height: 38px;
+      border-radius: 11px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .9rem;
+      flex-shrink: 0;
+      transition: all .5s cubic-bezier(.34,1.56,.64,1);
+    }
+    .step-icon.idle { background: var(--surface2); border: 1px solid var(--border); }
+    .step-icon.active {
+      background: linear-gradient(135deg, var(--accent), #7b6de8);
+      box-shadow: 0 0 0 4px rgba(91,79,207,.15), 0 4px 12px rgba(91,79,207,.3);
+      animation: pulseGlow 1.8s ease-in-out infinite;
+    }
+    .step-icon.done {
+      background: linear-gradient(135deg, var(--green), #22a37a);
+      box-shadow: 0 4px 12px rgba(45,158,110,.25);
+    }
+    .step-icon.error {
+      background: linear-gradient(135deg, var(--red), #e05050);
+      box-shadow: 0 4px 12px rgba(201,64,64,.25);
+    }
+    @keyframes pulseGlow {
+      0%, 100% { box-shadow: 0 0 0 4px rgba(91,79,207,.15), 0 4px 12px rgba(91,79,207,.3); }
+      50% { box-shadow: 0 0 0 8px rgba(91,79,207,.08), 0 6px 20px rgba(91,79,207,.45); }
+    }
+
+    .step-label { font-size: .8rem; font-weight: 400; color: var(--text2); }
+    .step-status { font-size: .7rem; color: var(--muted); margin-top: .1rem; }
+    .step-arrow { color: var(--dim); font-size: .8rem; flex-shrink: 0; opacity: .5; }
+
+    /* ───── SECTION TITLES ───── */
+    .section-title {
+      font-size: .65rem;
+      font-weight: 400;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .16em;
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      margin-bottom: 1.4rem;
+    }
+    .section-title::before {
+      content: '';
+      display: inline-block;
+      width: 28px; height: 1px;
+      background: var(--accent);
+    }
+    .section-title .dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+    }
+
+    /* ───── BLUEPRINT CARD ───── */
+    .blueprint-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: var(--shadow);
+      display: none;
+    }
+    .blueprint-card.visible {
+      display: block;
+      animation: riseUp .55s cubic-bezier(.16,1,.3,1) both;
+    }
+
+    /* ───── INFOGRAPHIC ───── */
+    .infographic-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 2.5rem;
+      padding: 2rem 1rem;
+      position: relative;
+    }
+    .infographic-container::before {
+      content: '';
+      position: absolute;
+      top: 50%; left: 8%; right: 8%;
+      height: 1px;
+      border-top: 1.5px dashed var(--border-strong);
+      z-index: 0;
+    }
+
+    .info-center {
+      width: 148px; height: 148px;
+      background: linear-gradient(145deg, #fff 0%, var(--surface2) 100%);
+      border-radius: 50%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid var(--border-strong);
+      box-shadow: var(--shadow-3d), inset 0 2px 0 rgba(255,255,255,.8);
+      z-index: 2;
+      text-align: center;
+      position: relative;
+      transform: rotateX(4deg);
+      transition: transform .5s ease, box-shadow .5s ease;
+    }
+    .info-center:hover { transform: rotateX(-2deg) scale(1.04); box-shadow: var(--shadow-lg), inset 0 2px 0 rgba(255,255,255,.8); }
+    .info-center h3 { font-family: var(--font-display); font-size: 1rem; font-weight: 500; color: var(--text); }
+    .info-center p { font-size: .6rem; text-transform: uppercase; color: var(--muted); letter-spacing: .1em; margin-top: 5px; font-weight: 300; }
+
+    .info-bubble {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 40px;
+      padding: .85rem 1.4rem .85rem .85rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      width: 270px;
+      box-shadow: var(--shadow);
+      z-index: 2;
+      position: relative;
+      transition: transform .3s cubic-bezier(.34,1.56,.64,1), box-shadow .3s ease;
+    }
+    .info-bubble:hover { transform: translateY(-5px) scale(1.02); box-shadow: var(--shadow-lg); }
+    .info-side.right .info-bubble {
+      padding: .85rem .85rem .85rem 1.4rem;
+      flex-direction: row-reverse;
+      text-align: right;
+    }
+    .info-bubble .num {
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent3), var(--accent));
+      color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 500; font-size: 1rem;
+      flex-shrink: 0;
+      box-shadow: 0 4px 12px rgba(91,79,207,.25);
+    }
+    .info-bubble h4 { font-size: .82rem; font-weight: 500; color: var(--text); margin-bottom: .25rem; }
+    .info-bubble p { font-size: .7rem; color: var(--muted); line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 3; line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; font-weight: 300; }
+
+    /* ───── TIMELINE ───── */
+    .timeline {
+      position: relative;
+      width: 100%;
+      max-width: 820px;
+      margin: 2rem auto;
+      padding: 1rem 0;
+    }
+    .timeline::after {
+      content: '';
+      position: absolute;
+      width: 2px;
+      background: linear-gradient(to bottom, transparent, var(--border-strong) 10%, var(--border-strong) 90%, transparent);
+      top: 0; bottom: 0;
+      left: 50%; margin-left: -1px;
+      border-radius: 2px;
+    }
+    .timeline-event-container {
+      padding: 10px 44px;
+      position: relative;
+      background: inherit;
+      width: 50%;
+      box-sizing: border-box;
+      opacity: 0;
+      animation: slideUpFade .65s cubic-bezier(.16,1,.3,1) forwards;
+    }
+    .timeline-event-container.left-side { left: 0; }
+    .timeline-event-container.right-side { left: 50%; }
+    .timeline-event-container::after {
+      content: attr(data-step);
+      position: absolute;
+      width: 34px; height: 34px;
+      right: -17px;
+      background: var(--surface);
+      border: 2px solid var(--accent);
+      top: 50%; transform: translateY(-50%);
+      border-radius: 50%;
+      z-index: 1;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 500; color: var(--accent);
+      font-size: .8rem;
+      box-shadow: 0 2px 8px rgba(91,79,207,.15);
+    }
+    .timeline-event-container.right-side::after { left: -17px; }
+    .timeline-content {
+      padding: 1.25rem 1.4rem;
+      background: var(--surface);
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-sm);
+      transition: transform .35s cubic-bezier(.34,1.56,.64,1), box-shadow .35s ease, border-color .25s;
+    }
+    .timeline-content:hover {
+      transform: translateY(-5px) scale(1.025);
+      box-shadow: var(--shadow-lg);
+      border-color: rgba(91,79,207,.25);
+    }
+    .event-info .title { font-size: .88rem; font-weight: 500; color: var(--text); line-height: 1.35; margin-bottom: .4rem; }
+    .event-info .format-tag { font-size: .68rem; padding: .2rem .6rem; border-radius: 20px; font-weight: 400; display: inline-block; }
+
+    @keyframes slideUpFade {
+      from { opacity: 0; transform: translateY(24px) scale(.96); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    @media (max-width: 768px) {
+      .infographic-container { flex-direction: column; gap: 1.2rem; }
+      .infographic-container::before { display: none; }
+      .info-side.right .info-bubble { flex-direction: row; text-align: left; padding: .85rem 1.4rem .85rem .85rem; }
+      .timeline::after { left: 31px; }
+      .timeline-event-container { width: 100%; padding-left: 72px; padding-right: 20px; }
+      .timeline-event-container.right-side { left: 0%; }
+      .timeline-event-container.left-side::after, .timeline-event-container.right-side::after { left: 15px; right: auto; }
+      .hero-text h2 { font-size: 1.8rem; }
+    }
+
+    /* ───── CONTENT SECTION ───── */
+    .content-section { display: none; }
+    .content-section.visible { display: block; animation: riseUp .5s cubic-bezier(.16,1,.3,1) both; }
+
+    .content-cards { display: flex; flex-direction: column; gap: 1.1rem; }
+
+    .content-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      transition: border-color .25s, box-shadow .3s, transform .3s cubic-bezier(.34,1.56,.64,1);
+      box-shadow: var(--shadow-sm);
+    }
+    .content-card:hover { border-color: rgba(91,79,207,.2); box-shadow: var(--shadow); transform: translateY(-2px); }
+    .content-card-header {
+      padding: 1.1rem 1.5rem;
+      display: flex; align-items: center; gap: .85rem;
+      cursor: pointer; user-select: none;
+      transition: background .2s;
+    }
+    .content-card-header:hover { background: var(--bg2); }
+    .event-badge {
+      width: 34px; height: 34px;
+      border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 500; font-size: .78rem;
+      flex-shrink: 0; color: #fff;
+    }
+    .card-title { flex: 1; }
+    .card-title .main-title { font-size: .88rem; font-weight: 400; color: var(--text); }
+    .card-title .sub { font-size: .72rem; color: var(--muted); margin-top: .2rem; display: flex; align-items: center; gap: .6rem; }
+    .format-pill { padding: .18rem .6rem; border-radius: 20px; font-size: .67rem; font-weight: 400; }
+    .duration-pill { font-size: .7rem; color: var(--muted); font-weight: 300; }
+    .toggle-icon { color: var(--dim); font-size: .75rem; transition: transform .3s cubic-bezier(.34,1.56,.64,1); flex-shrink: 0; }
+    .toggle-icon.open { transform: rotate(180deg); }
+
+    .content-body { padding: 0 1.5rem 1.5rem; display: none; }
+    .content-body.open { display: block; animation: riseUp .28s ease both; }
+    .content-body pre {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.25rem;
+      font-family: var(--font-mono);
+      font-size: .8rem;
+      line-height: 1.75;
+      color: var(--text2);
+      white-space: pre-wrap;
+      word-break: break-word;
+      overflow: hidden;
+      font-weight: 300;
+    }
+    
+    .markdown-body {
+        font-family: var(--font-body);
+        font-size: .85rem;
+        line-height: 1.7;
+        color: var(--text2);
+        font-weight: 300;
+    }
+    .markdown-body h1, .markdown-body h2, .markdown-body h3 {
+        font-family: var(--font-display);
+        color: var(--text);
+        margin-top: 1.5rem;
+        margin-bottom: 0.75rem;
+        font-weight: 500;
+    }
+    .markdown-body p { margin-bottom: 1rem; }
+    .markdown-body ul, .markdown-body ol { margin-left: 1.5rem; margin-bottom: 1rem; }
+    .markdown-body li { margin-bottom: 0.25rem; }
+    .markdown-body code {
+        background: var(--bg);
+        padding: 0.2rem 0.4rem;
+        border-radius: 4px;
+        font-family: var(--font-mono);
+        font-size: 0.8em;
+    }
+    .markdown-body pre {
+        background: #1a1a1a;
+        color: #e5e5e5;
+        padding: 1.25rem;
+        border-radius: 10px;
+        overflow-x: auto;
+        margin-bottom: 1rem;
+    }
+    .markdown-body pre code { background: transparent; padding: 0; color: inherit; }
+    
+    .quiz-question { margin-bottom: 1.5rem; background: var(--bg); padding: 1.25rem; border-radius: 10px; border: 1px solid var(--border); }
+    .q-text { font-weight: 500; margin-bottom: 1rem; color: var(--text); font-size: .9rem; line-height: 1.5; }
+    .q-option { 
+        padding: 0.75rem 1rem; margin-bottom: 0.5rem; border: 1px solid var(--border-strong); 
+        border-radius: 8px; cursor: pointer; transition: all 0.2s; background: var(--surface);
+        font-size: .85rem; color: var(--text2); font-weight: 300;
+    }
+    .q-option:hover { border-color: var(--accent); background: var(--surface2); }
+    .opt-letter { font-weight: 600; color: var(--accent); margin-right: 0.5rem; }
+    .objective-bar {
+      background: linear-gradient(135deg, rgba(91,79,207,.06), rgba(59,158,202,.04));
+      border-left: 2px solid var(--accent);
+      padding: .75rem 1.1rem;
+      border-radius: 0 10px 10px 0;
+      margin-bottom: .85rem;
+      font-size: .8rem;
+      color: var(--text2);
+      line-height: 1.55;
+      font-weight: 300;
+    }
+
+    /* ───── FORMAT COLOR MAP ───── */
+    .fmt-hook { background: linear-gradient(135deg, #7c3aed, #6d28d9); }
+    .fmt-objectives_list { background: linear-gradient(135deg, #1d4ed8, #1e40af); }
+    .fmt-quiz { background: linear-gradient(135deg, #d97706, #b45309); }
+    .fmt-lecture_with_formula { background: linear-gradient(135deg, #0d9488, #0f766e); }
+    .fmt-worked_example { background: linear-gradient(135deg, #059669, #047857); }
+    .fmt-practice_problem { background: linear-gradient(135deg, #ca8a04, #a16207); }
+    .fmt-feedback_rubric { background: linear-gradient(135deg, #dc2626, #b91c1c); }
+    .fmt-assessment_task { background: linear-gradient(135deg, #db2777, #be185d); }
+    .fmt-reflection_essay { background: linear-gradient(135deg, #4f46e5, #4338ca); }
+
+    .pill-hook { background: rgba(124,58,237,.12); color: #7c3aed; }
+    .pill-objectives_list { background: rgba(29,78,216,.12); color: #1d4ed8; }
+    .pill-quiz { background: rgba(217,119,6,.12); color: #b45309; }
+    .pill-lecture_with_formula { background: rgba(13,148,136,.12); color: #0d9488; }
+    .pill-worked_example { background: rgba(5,150,105,.12); color: #059669; }
+    .pill-practice_problem { background: rgba(202,138,4,.12); color: #92680a; }
+    .pill-feedback_rubric { background: rgba(220,38,38,.12); color: #dc2626; }
+    .pill-assessment_task { background: rgba(219,39,119,.12); color: #db2777; }
+    .pill-reflection_essay { background: rgba(79,70,229,.12); color: #4f46e5; }
+
+    /* ───── ERROR TOAST ───── */
+    .error-toast {
+      background: rgba(201,64,64,.07);
+      border: 1px solid rgba(201,64,64,.2);
+      border-radius: 12px;
+      padding: .85rem 1.15rem;
+      color: var(--red);
+      font-size: .82rem;
+      margin-bottom: 1.5rem;
+      display: none;
+      font-weight: 300;
+    }
+    .error-toast.visible {
+      display: flex; align-items: center; gap: .65rem;
+      animation: riseUp .3s ease both;
+    }
+
+    /* ───── SKELETON ───── */
+    .skeleton {
+      background: linear-gradient(90deg, var(--surface2) 25%, var(--surface3) 50%, var(--surface2) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.6s infinite;
+      border-radius: 12px;
+      height: 58px;
+      margin-bottom: .75rem;
+    }
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    /* ───── STUDENT AGENT ───── */
+    .student-section { display: none; margin-bottom: 2rem; }
+    .student-section.visible { display: block; animation: riseUp .5s cubic-bezier(.16,1,.3,1) both; }
+
+    .eval-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: .85rem; margin-bottom: 1.5rem; }
+    .eval-stat {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.25rem 1rem;
+      text-align: center;
+      box-shadow: var(--shadow-sm);
+      transition: transform .3s cubic-bezier(.34,1.56,.64,1), box-shadow .3s;
+    }
+    .eval-stat:hover { transform: translateY(-4px); box-shadow: var(--shadow); }
+    .eval-stat .num { font-family: var(--font-display); font-size: 1.8rem; font-weight: 500; line-height: 1; }
+    .eval-stat .lbl { font-size: .65rem; color: var(--muted); text-transform: uppercase; letter-spacing: .1em; margin-top: .4rem; font-weight: 300; }
+    .eval-stat.pass .num { color: var(--green); }
+    .eval-stat.fail .num { color: var(--red); }
+    .eval-stat.rate .num { color: var(--accent); }
+
+    .student-summary-bar {
+      background: linear-gradient(135deg, rgba(196,155,46,.06), rgba(91,79,207,.04));
+      border-left: 2px solid var(--yellow);
+      padding: .85rem 1.1rem;
+      border-radius: 0 10px 10px 0;
+      margin-bottom: 1.35rem;
+      font-size: .8rem;
+      color: var(--text2);
+      line-height: 1.6;
+      font-weight: 300;
+    }
+
+    .attempt-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      margin-bottom: .75rem;
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+      transition: box-shadow .25s, transform .3s cubic-bezier(.34,1.56,.64,1);
+    }
+    .attempt-card:hover { box-shadow: var(--shadow); transform: translateY(-2px); }
+    .attempt-header {
+      padding: .9rem 1.3rem;
+      display: flex; align-items: center; gap: .75rem;
+      cursor: pointer; user-select: none;
+      transition: background .2s;
+    }
+    .attempt-header:hover { background: var(--bg2); }
+    .score-badge {
+      width: 46px; height: 46px;
+      border-radius: 11px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .73rem; font-weight: 500;
+      flex-shrink: 0; color: #fff;
+    }
+    .score-badge.pass { background: linear-gradient(135deg, var(--green), #22a37a); box-shadow: 0 4px 10px rgba(45,158,110,.25); }
+    .score-badge.fail { background: linear-gradient(135deg, var(--red), #e05050); box-shadow: 0 4px 10px rgba(201,64,64,.25); }
+    .attempt-info { flex: 1; }
+    .attempt-title { font-size: .86rem; font-weight: 400; color: var(--text); }
+    .attempt-meta { font-size: .7rem; color: var(--muted); margin-top: .2rem; display: flex; gap: .75rem; align-items: center; font-weight: 300; }
+    .gap-count { padding: .12rem .5rem; border-radius: 20px; background: rgba(201,64,64,.1); color: var(--red); font-weight: 500; font-size: .66rem; }
+
+    .attempt-body { display: none; padding: 0 1.3rem 1.3rem; }
+    .attempt-body.open { display: block; animation: riseUp .22s ease both; }
+    .attempt-section { margin-top: .9rem; }
+    .attempt-section-title { font-size: .65rem; font-weight: 400; color: var(--muted); text-transform: uppercase; letter-spacing: .1em; margin-bottom: .45rem; }
+    .attempt-text {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: .8rem 1rem;
+      font-size: .78rem;
+      color: var(--text2);
+      line-height: 1.65;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-weight: 300;
+    }
+    .gap-list { display: flex; flex-direction: column; gap: .5rem; margin-top: .45rem; }
+    .gap-item {
+      background: rgba(201,64,64,.05);
+      border: 1px solid rgba(201,64,64,.15);
+      border-radius: 9px;
+      padding: .65rem .9rem;
+      font-size: .78rem;
+      line-height: 1.55;
+      font-weight: 300;
+    }
+    .gap-item strong { color: var(--red); font-weight: 500; }
+    .gap-item .excerpt { font-style: italic; color: var(--muted); font-size: .73rem; margin-top: .3rem; }
+
+    .refined-section { display: none; margin-bottom: 2rem; }
+    .refined-section.visible { display: block; animation: riseUp .5s cubic-bezier(.16,1,.3,1) both; }
+    .refined-badge {
+      display: inline-flex; align-items: center; gap: .4rem;
+      padding: .25rem .75rem;
+      background: rgba(196,155,46,.1); border: 1px solid rgba(196,155,46,.25);
+      border-radius: 20px; font-size: .65rem; font-weight: 400; color: var(--yellow);
+      margin-bottom: .5rem;
+    }
+    .refined-notes { font-size: .75rem; color: var(--muted); margin-bottom: .75rem; font-style: italic; font-weight: 300; }
+
+    /* ───── DIVIDER ───── */
+    .section-gap { margin-bottom: 2rem; }
+
+    /* ───── FLOATING ORBS (decorative) ───── */
+    .orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(60px);
+      pointer-events: none;
+      z-index: 0;
+      animation: orbDrift 18s ease-in-out infinite;
+    }
+    .orb-1 {
+      width: 340px; height: 340px;
+      background: radial-gradient(circle, rgba(91,79,207,.07), transparent 70%);
+      top: -80px; left: -100px;
+      animation-delay: 0s;
+    }
+    .orb-2 {
+      width: 280px; height: 280px;
+      background: radial-gradient(circle, rgba(59,158,202,.07), transparent 70%);
+      bottom: 20%; right: -80px;
+      animation-delay: -7s;
+    }
+    .orb-3 {
+      width: 200px; height: 200px;
+      background: radial-gradient(circle, rgba(196,155,46,.06), transparent 70%);
+      top: 55%; left: 30%;
+      animation-delay: -12s;
+    }
+    @keyframes orbDrift {
+      0%, 100% { transform: translateY(0px) translateX(0px); }
+      33% { transform: translateY(-30px) translateX(15px); }
+      66% { transform: translateY(20px) translateX(-10px); }
+    }
+
+    /* Eval toggle area */
+    .eval-toggle-btn {
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: linear-gradient(135deg, rgba(196,155,46,0.12), rgba(196,155,46,0.03));
+      border: 1px solid rgba(196,155,46,0.3);
+      padding: 1.25rem 1.5rem;
+      border-radius: 14px;
+      transition: all 0.3s cubic-bezier(.34,1.56,.64,1);
+      margin-bottom: 1.5rem;
+      box-shadow: 0 4px 12px rgba(196,155,46,0.05);
+    }
+    .eval-toggle-btn:hover {
+      background: linear-gradient(135deg, rgba(196,155,46,0.18), rgba(196,155,46,0.06));
+      border-color: rgba(196,155,46,0.5);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 24px rgba(196,155,46,0.15);
+    }
+    #evalToggleIcon { 
+        font-size: .85rem; 
+        color: var(--yellow); 
+        background: rgba(196,155,46,0.15);
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        transition: transform 0.3s cubic-bezier(.34,1.56,.64,1);
+    }
+    #evalToggleIcon.open {
+        transform: rotate(180deg);
+        background: var(--yellow);
+        color: #fff;
+    }
+    .btn-download {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--accent);
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: var(--font-body);
+      font-weight: 500;
+    }
+    .btn-download:hover {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+  </style>
 </head>
+
 <body>
 
-<header>
-  <div class="logo">🎓</div>
-  <h1>AI Course Generator</h1>
-  <div class="badge">BETA</div>
-</header>
+  <!-- Decorative orbs -->
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
 
-<div class="main">
+  <header>
+    <div class="logo-3d">
+      <div class="logo-3d-inner">P</div>
+    </div>
+    <div>
+      <h1>PADH<span>·</span>AI</h1>
+      <div class="header-tagline">Intelligent Course Design</div>
+    </div>
+    <div class="badge">Beta</div>
+  </header>
 
-  <!-- Input -->
-  <div class="input-card">
-    <h2><span></span>What would you like to learn?</h2>
-    <textarea id="inputText" placeholder="Describe your course topic or paste raw learning content here…&#10;&#10;Example: I want to build a course on developing conversational AI applications using LangChain for intermediate Python developers who are familiar with basic AI concepts."></textarea>
-    <button class="btn-generate" id="generateBtn" onclick="runPipeline()">
-      <div class="spinner"></div>
-      <span class="btn-label">✨ Generate Course</span>
-    </button>
-  </div>
+  <div class="main">
 
-  <!-- Pipeline status -->
-  <div class="pipeline">
-    <div class="pipeline-step">
-      <div class="step-icon idle" id="step1Icon">📝</div>
-      <div class="step-info">
-        <div class="step-label">Architecture Agent</div>
-        <div class="step-status" id="step1Status">Waiting…</div>
+    <!-- Hero -->
+    <div class="hero-text">
+      <h2>Design your <em>perfect</em> course</h2>
+      <p>Describe your topic and let the multi-agent pipeline build a structured learning experience.</p>
+    </div>
+
+    <!-- Input -->
+    <div class="input-card">
+      <div class="input-label">What would you like to learn?</div>
+      <textarea id="inputText"
+        placeholder="Describe your course topic or paste raw learning content here…&#10;&#10;Example: I want to build a course on developing conversational AI applications using LangChain for intermediate Python developers who are familiar with basic AI concepts."></textarea>
+      <button class="btn-generate" id="generateBtn" onclick="runPipeline()">
+        <div class="spinner"></div>
+        <span class="btn-label">Generate Course</span>
+      </button>
+    </div>
+
+    <!-- Pipeline status -->
+    <div class="pipeline">
+      <div class="pipeline-step">
+        <div class="step-icon idle" id="step1Icon">1</div>
+        <div class="step-info">
+          <div class="step-label">Architecture Agent</div>
+          <div class="step-status" id="step1Status">Waiting...</div>
+        </div>
+      </div>
+      <div class="step-arrow">›</div>
+      <div class="pipeline-step">
+        <div class="step-icon idle" id="step2Icon">2</div>
+        <div class="step-info">
+          <div class="step-label">Content Agent</div>
+          <div class="step-status" id="step2Status">Waiting...</div>
+        </div>
+      </div>
+      <div class="step-arrow">›</div>
+      <div class="pipeline-step">
+        <div class="step-icon idle" id="step3Icon">3</div>
+        <div class="step-info">
+          <div class="step-label">Student Agent</div>
+          <div class="step-status" id="step3Status">Waiting...</div>
+        </div>
+      </div>
+      <div class="step-arrow">›</div>
+      <div class="pipeline-step">
+        <div class="step-icon idle" id="step4Icon">4</div>
+        <div class="step-info">
+          <div class="step-label">Course Ready</div>
+          <div class="step-status" id="step4Status">Waiting...</div>
+        </div>
       </div>
     </div>
-    <div class="step-arrow">→</div>
-    <div class="pipeline-step">
-      <div class="step-icon idle" id="step2Icon">🔨</div>
-      <div class="step-info">
-        <div class="step-label">Content Agent</div>
-        <div class="step-status" id="step2Status">Waiting…</div>
+
+    <!-- Error -->
+    <div class="error-toast" id="errorToast">[Warning] <span id="errorMsg"></span></div>
+
+    <!-- Blueprint -->
+    <div class="blueprint-card" id="blueprintCard">
+      <div class="section-title">
+        <div class="dot" style="background:var(--accent2)"></div>Course Blueprint
+      </div>
+      <div class="blueprint-meta" id="blueprintMeta"></div>
+      <div class="section-title" style="margin-top:2.25rem; margin-bottom:1.5rem;">
+        <div class="dot" style="background:var(--accent3)"></div>Learning Events Journey
+      </div>
+      <div class="timeline" id="eventsGrid"></div>
+    </div>
+
+    <!-- Content -->
+    <div class="content-section" id="contentSection">
+      <div class="section-title">
+        <div class="dot" style="background:var(--green)"></div>Generated Course Content
+        <button class="btn-download" id="downloadPdfBtn" style="display:none; margin-left:auto; padding: 0.5rem 1rem; font-size: 0.75rem; border-radius: 8px;" onclick="downloadCoursePDF()">Download PDF</button>
+      </div>
+      <div class="content-cards" id="contentCards"></div>
+    </div>
+
+    <!-- Student Evaluation -->
+    <div class="student-section" id="studentSection" style="margin-top:2rem;">
+      <div class="eval-toggle-btn" onclick="toggleEvaluationLogs()">
+        <div style="display:flex;align-items:center;gap:1.1rem;">
+          <div class="dot" style="background:var(--yellow); width:12px; height:12px; border-radius:50%; box-shadow: 0 0 10px rgba(196,155,46,0.5);"></div>
+          <div style="display:flex; flex-direction:column;">
+            <span style="font-size: 1rem; font-weight: 500; color: var(--text); letter-spacing: 0;">Behind the Scenes: Student Agent Logs</span>
+            <span style="font-size: .75rem; color: var(--muted); font-weight: 300; margin-top: .2rem; text-transform: none; letter-spacing: 0;">Click to view the AI debate and evaluation process</span>
+          </div>
+        </div>
+        <div id="evalToggleIcon">▼</div>
+      </div>
+      <div id="evalLogsContainer" style="display:none; margin-top:1rem;">
+        <div class="eval-summary">
+          <div class="eval-stat pass">
+            <div class="num" id="evalPassed">—</div>
+            <div class="lbl">Passed</div>
+          </div>
+          <div class="eval-stat fail">
+            <div class="num" id="evalFailed">—</div>
+            <div class="lbl">Failed</div>
+          </div>
+          <div class="eval-stat rate">
+            <div class="num" id="evalRate">—</div>
+            <div class="lbl">Pass Rate</div>
+          </div>
+        </div>
+        <div class="student-summary-bar" id="evalSummary"></div>
+        <div id="attemptCards"></div>
       </div>
     </div>
-    <div class="step-arrow">→</div>
-    <div class="pipeline-step">
-      <div class="step-icon idle" id="step3Icon">📚</div>
-      <div class="step-info">
-        <div class="step-label">Course Ready</div>
-        <div class="step-status" id="step3Status">Waiting…</div>
+
+    <!-- Refined Content -->
+    <div class="refined-section" id="refinedSection">
+      <div class="section-title">
+        <div class="dot" style="background:var(--orange)"></div>✦ AI-Refined Content
       </div>
+      <div class="content-cards" id="refinedCards"></div>
     </div>
-    <div class="step-arrow">→</div>
-    <div class="pipeline-step">
-      <div class="step-icon idle" id="step4Icon">🎓</div>
-      <div class="step-info">
-        <div class="step-label">Student Agent</div>
-        <div class="step-status" id="step4Status">Waiting…</div>
-      </div>
-    </div>
+
   </div>
 
-  <!-- Error -->
-  <div class="error-toast" id="errorToast">⚠️ <span id="errorMsg"></span></div>
+  <script>
+    const API = window.location.origin;
+    let lastBlueprint = null;
+    let lastCourseData = null;
 
-  <!-- Blueprint -->
-  <div class="blueprint-card" id="blueprintCard">
-    <div class="section-title"><div class="dot" style="background:var(--accent2)"></div>Course Blueprint</div>
-    <div class="blueprint-meta" id="blueprintMeta"></div>
-    <div class="section-title" style="margin-top:1rem"><div class="dot" style="background:var(--accent3)"></div>Learning Events</div>
-    <div class="events-grid" id="eventsGrid"></div>
-  </div>
+    const FORMAT_ICONS = {
+      hook: '', objectives_list: '', quiz: '', lecture_with_formula: '',
+      worked_example: '', practice_problem: '', feedback_rubric: '',
+      assessment_task: '', reflection_essay: ''
+    };
 
-  <!-- Content -->
-  <div class="content-section" id="contentSection">
-    <div class="section-title"><div class="dot" style="background:var(--green)"></div>Generated Course Content</div>
-    <div class="content-cards" id="contentCards"></div>
-  </div>
+    function setStep(n, state, msg) {
+      const icon = document.getElementById(`step${n}Icon`);
+      const stat = document.getElementById(`step${n}Status`);
+      if (!icon || !stat) return;
+      icon.className = `step-icon ${state}`;
+      stat.textContent = msg;
+    }
 
-  <!-- Student Evaluation -->
-  <div class="student-section" id="studentSection">
-    <div class="section-title"><div class="dot" style="background:var(--yellow)"></div>Student Agent Evaluation</div>
-    <div class="eval-summary">
-      <div class="eval-stat pass"><div class="num" id="evalPassed">—</div><div class="lbl">Passed</div></div>
-      <div class="eval-stat fail"><div class="num" id="evalFailed">—</div><div class="lbl">Failed</div></div>
-      <div class="eval-stat rate"><div class="num" id="evalRate">—</div><div class="lbl">Pass Rate</div></div>
-    </div>
-    <div class="student-summary-bar" id="evalSummary"></div>
-    <div id="attemptCards"></div>
-  </div>
+    function toggleEvaluationLogs() {
+      const container = document.getElementById('evalLogsContainer');
+      const icon = document.getElementById('evalToggleIcon');
+      if (container.style.display === 'none') {
+        container.style.display = 'block';
+        icon.classList.add('open');
+      } else {
+        container.style.display = 'none';
+        icon.classList.remove('open');
+      }
+    }
 
-  <!-- Refined Content -->
-  <div class="refined-section" id="refinedSection">
-    <div class="section-title"><div class="dot" style="background:var(--orange)"></div>✨ AI-Refined Content</div>
-    <div class="content-cards" id="refinedCards"></div>
-  </div>
+    function showError(msg) {
+      const t = document.getElementById('errorToast');
+      document.getElementById('errorMsg').textContent = msg;
+      t.classList.add('visible');
+    }
 
-</div>
+    function hideError() {
+      document.getElementById('errorToast').classList.remove('visible');
+    }
 
-<script>
-const API = window.location.origin;
+    function fmtClass(fmt) {
+      return (fmt || 'hook').replace(/[^a-z_]/g, '');
+    }
 
-const FORMAT_ICONS = {
-  hook:'🪝', objectives_list:'🎯', quiz:'❓', lecture_with_formula:'📖',
-  worked_example:'🔬', practice_problem:'🛠️', feedback_rubric:'📊',
-  assessment_task:'📝', reflection_essay:'💭'
-};
+    function renderBlueprint(bp) {
+      const card = document.getElementById('blueprintCard');
 
-function setStep(n, state, msg) {
-  const icon = document.getElementById(`step${n}Icon`);
-  const status = document.getElementById(`step${n}Status`);
-  icon.className = `step-icon ${state}`;
-  status.textContent = msg;
-}
+      const prereqsStr = (bp.prerequisites || []).join(', ') || 'None';
+      document.getElementById('blueprintMeta').innerHTML = `
+        <div class="infographic-container">
+          <div class="info-side left">
+            <div class="info-bubble">
+               <div class="num">01</div>
+               <div class="text">
+                 <h4>Prerequisites</h4>
+                 <p title="${prereqsStr}">${prereqsStr}</p>
+               </div>
+            </div>
+          </div>
+          <div class="info-center">
+            <h3>Course Blueprint</h3>
+            <p>PADH·AI</p>
+          </div>
+          <div class="info-side right">
+            <div class="info-bubble">
+               <div class="num">02</div>
+               <div class="text">
+                 <h4>Assessment</h4>
+                 <p title="${bp.assessment}">${bp.assessment}</p>
+               </div>
+            </div>
+          </div>
+        </div>
+      `;
 
-function showError(msg) {
-  const t = document.getElementById('errorToast');
-  document.getElementById('errorMsg').textContent = msg;
-  t.classList.add('visible');
-}
-
-function hideError() {
-  document.getElementById('errorToast').classList.remove('visible');
-}
-
-function fmtClass(fmt) {
-  return (fmt || 'hook').replace(/[^a-z_]/g, '');
-}
-
-function renderBlueprint(bp) {
-  const card = document.getElementById('blueprintCard');
-  const meta = document.getElementById('blueprintMeta');
-  const grid = document.getElementById('eventsGrid');
-
-  meta.innerHTML = `
-    <div class="meta-item">
-      <div class="label">Course Title</div>
-      <div class="value">${bp.course_title}</div>
-    </div>
-    <div class="meta-item">
-      <div class="label">Prerequisites</div>
-      <div class="value"><ul>${(bp.prerequisites||[]).map(p=>`<li>${p}</li>`).join('')}</ul></div>
-    </div>
-    <div class="meta-item" style="grid-column:1/-1">
-      <div class="label">Final Assessment</div>
-      <div class="value">${bp.assessment||'—'}</div>
-    </div>
-  `;
-
-  grid.innerHTML = (bp.events||[]).map(e => {
-    const f = fmtClass(e.output_format);
-    return `
-      <div class="event-chip">
-        <div class="event-num">${e.event_id}</div>
-        <div class="event-info">
-          <div class="title">${e.title}</div>
-          <span class="format-tag pill-${f}">${FORMAT_ICONS[e.output_format]||''} ${e.output_format}</span>
-          <span style="font-size:.68rem;color:var(--muted);margin-left:.4rem">⏱ ${e.estimated_duration}</span>
+      const grid = document.getElementById('eventsGrid');
+      grid.innerHTML = (bp.events || []).map((e, i) => {
+        const f = fmtClass(e.output_format);
+        const sideClass = (i % 2 === 0) ? 'left-side' : 'right-side';
+        return `
+      <div class="timeline-event-container ${sideClass}" data-step="${e.event_id}" style="animation-delay: ${i * 0.1}s">
+        <div class="timeline-content">
+          <div class="event-info">
+            <div class="title">${e.title}</div>
+            <span class="format-tag pill-${f}">${FORMAT_ICONS[e.output_format] || ''} ${e.output_format}</span>
+            <span style="font-size:.72rem;color:var(--muted);margin-left:.6rem;font-weight:300;">⏱ ${e.estimated_duration}</span>
+          </div>
         </div>
       </div>`;
-  }).join('');
+      }).join('');
 
-  card.classList.add('visible');
-}
+      grid.innerHTML += '<div style="clear:both;"></div>';
+      card.classList.add('visible');
+    }
 
-function renderContent(data) {
-  const section = document.getElementById('contentSection');
-  const cards = document.getElementById('contentCards');
+    function renderContent(data) {
+      const section = document.getElementById('contentSection');
+      const cards = document.getElementById('contentCards');
+      cards.innerHTML = (data.content || []).map(() => `<div class="skeleton"></div>`).join('');
+      section.classList.add('visible');
 
-  // Show skeletons first
-  cards.innerHTML = (data.content||[]).map(()=>`<div class="skeleton"></div>`).join('');
-  section.classList.add('visible');
-
-  setTimeout(() => {
-    cards.innerHTML = (data.content||[]).map((ev, i) => {
-      const f = fmtClass(ev.output_format);
-      const icon = FORMAT_ICONS[ev.output_format] || '📄';
-      const bodyId = `body-${i}`;
-      const iconId = `toggle-${i}`;
-      return `
+      setTimeout(() => {
+        cards.innerHTML = (data.content || []).map((ev, i) => {
+          const f = fmtClass(ev.output_format);
+          const icon = FORMAT_ICONS[ev.output_format] || '📄';
+          const bodyId = `body-${i}`;
+          const iconId = `toggle-${i}`;
+          const contentHtml = ev.output_format === 'quiz' 
+              ? parseAndRenderQuiz(ev.content, i) 
+              : `<div class="markdown-body">${marked.parse(ev.content)}</div>`;
+          return `
         <div class="content-card">
           <div class="content-card-header" onclick="toggleCard(${i})">
             <div class="event-badge fmt-${f}">${ev.event_id}</div>
             <div class="card-title">
               <div class="main-title">${ev.title}</div>
               <div class="sub">
-                <span class="format-pill pill-${f}">${icon} ${ev.output_format}</span>
-                <span class="duration-pill">⏱ ${ev.estimated_duration}</span>
+                <span class="format-pill pill-${f}">${ev.output_format}</span>
+                <span class="duration-pill">Duration: ${ev.estimated_duration}</span>
               </div>
             </div>
             <div class="toggle-icon" id="${iconId}">▼</div>
           </div>
           <div class="content-body" id="${bodyId}">
-            <div class="objective-bar">🎯 ${ev.learning_objective}</div>
-            <pre>${escHtml(ev.content)}</pre>
+            <div class="objective-bar">Objective: ${ev.learning_objective}</div>
+            ${contentHtml}
           </div>
         </div>`;
-    }).join('');
-
-    // Auto-open first card
-    if (data.content && data.content.length > 0) toggleCard(0);
-  }, 300);
-}
-
-function toggleCard(i) {
-  const body = document.getElementById(`body-${i}`);
-  const icon = document.getElementById(`toggle-${i}`);
-  if (!body) return;
-  const isOpen = body.classList.contains('open');
-  body.classList.toggle('open', !isOpen);
-  icon.classList.toggle('open', !isOpen);
-}
-
-function escHtml(s) {
-  return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
-
-function showSkeletons() {
-  const cards = document.getElementById('contentCards');
-  const section = document.getElementById('contentSection');
-  cards.innerHTML = Array(9).fill('<div class="skeleton"></div>').join('');
-  section.classList.add('visible');
-}
-
-async function runPipeline() {
-  const text = document.getElementById('inputText').value.trim();
-  if (!text) { showError('Please enter some content before generating.'); return; }
-
-  hideError();
-  const btn = document.getElementById('generateBtn');
-  btn.disabled = true; btn.classList.add('loading');
-
-  // Reset
-  document.getElementById('blueprintCard').classList.remove('visible');
-  document.getElementById('contentSection').classList.remove('visible');
-  document.getElementById('studentSection').classList.remove('visible');
-  document.getElementById('refinedSection').classList.remove('visible');
-  [1,2,3,4].forEach(n => setStep(n,'idle','Waiting…'));
-
-  try {
-    // ── Step 1: Architecture Agent ──────────────────────────────
-    setStep(1,'active','Analysing content & building blueprint…');
-
-    const res1 = await fetch(`${API}/generate-blueprint`, {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({content: text})
-    });
-
-    if (!res1.ok) throw new Error(`Architecture Agent failed (${res1.status})`);
-    const data1 = await res1.json();
-    const blueprint = data1.blueprint;
-
-    setStep(1,'done','Blueprint ready ✓');
-    renderBlueprint(blueprint);
-
-    // ── Step 2: Content Agent ───────────────────────────────────
-    setStep(2,'active','Generating content for all events…');
-    showSkeletons();
-
-    const res2 = await fetch(`${API}/generate-content`, {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({blueprint})
-    });
-
-    if (!res2.ok) {
-      const err = await res2.json().catch(()=>({detail:'Unknown error'}));
-      throw new Error(`Content Agent failed: ${JSON.stringify(err.detail)}`);
-    }
-    const data2 = await res2.json();
-
-    setStep(2,'done','All events generated ✓');
-
-    // ── Step 3: Done ────────────────────────────────────────────
-    setStep(3,'done',`${data2.content.length} events ready ✓`);
-    renderContent(data2);
-
-    // ── Step 4: Student Agent ────────────────────────────────────
-    setStep(4,'active','Simulated student attempting exercises…');
-
-    const res3 = await fetch(`${API}/evaluate-and-refine`, {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({course_content: data2})
-    });
-
-    if (!res3.ok) {
-      const err3 = await res3.json().catch(()=>({detail:'Unknown error'}));
-      throw new Error(`Student Agent failed: ${JSON.stringify(err3.detail)}`);
-    }
-    const data3 = await res3.json();
-
-    const passEmoji = data3.failure_log.overall_passed ? '✅' : '⚠️';
-    setStep(4,'done',`${passEmoji} ${Math.round(data3.final_pass_rate*100)}% pass rate`);
-    renderEvaluation(data3);
-    if (data3.refined_events && data3.refined_events.length > 0) {
-      renderRefined(data3);
+        }).join('');
+        if (data.content && data.content.length > 0) toggleCard(0);
+      }, 300);
     }
 
-  } catch(err) {
-    showError(err.message);
-    [1,2,3,4].forEach(n => {
-      const el = document.getElementById(`step${n}Icon`);
-      if (el.classList.contains('active')) setStep(n,'error','Failed');
-    });
-  } finally {
-    btn.disabled = false; btn.classList.remove('loading');
-  }
-}
+    function toggleCard(i) {
+      const body = document.getElementById(`body-${i}`);
+      const icon = document.getElementById(`toggle-${i}`);
+      if (!body) return;
+      const isOpen = body.classList.contains('open');
+      body.classList.toggle('open', !isOpen);
+      icon.classList.toggle('open', !isOpen);
+    }
 
-function renderEvaluation(data) {
-  const fl = data.failure_log;
-  document.getElementById('evalPassed').textContent = fl.passed_events;
-  document.getElementById('evalFailed').textContent  = fl.failed_events;
-  document.getElementById('evalRate').textContent    = Math.round(fl.pass_rate * 100) + '%';
-  document.getElementById('evalSummary').textContent = fl.summary;
+    function escHtml(s) {
+      return (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
 
-  const container = document.getElementById('attemptCards');
-  container.innerHTML = (data.attempts || []).map((a, i) => {
-    const passClass = a.passed ? 'pass' : 'fail';
-    const scoreStr  = Math.round(a.comprehension_score * 100) + '%';
-    const gapCount  = a.concept_gaps ? a.concept_gaps.length : 0;
-    const bodyId    = `attempt-body-${i}`;
-    const gaps = (a.concept_gaps || []).map(g => `
+    function showSkeletons() {
+      const cards = document.getElementById('contentCards');
+      const section = document.getElementById('contentSection');
+      cards.innerHTML = Array(9).fill('<div class="skeleton"></div>').join('');
+      section.classList.add('visible');
+    }
+
+    function parseAndRenderQuiz(content, eventIndex) {
+        const qBlocks = content.split(/Q\d*\.?\s+/).filter(b => b.trim());
+        let html = '<div class="quiz-container">';
+        
+        qBlocks.forEach((block, qIdx) => {
+            const lines = block.split('\n').map(l => l.trim()).filter(l => l);
+            let qText = "";
+            let options = [];
+            let correctLetter = "";
+            let explanation = "";
+            
+            for (let i=0; i<lines.length; i++) {
+                const line = lines[i];
+                if (line.match(/^[A-D]\)/)) {
+                    options.push(line);
+                } else if (line.includes('Correct Answer:')) {
+                    const match = line.match(/Correct Answer:\s*([A-D])\)?\s*(.*)/);
+                    if (match) {
+                        correctLetter = match[1];
+                        explanation = match[2] || "That is the correct answer.";
+                    }
+                } else {
+                    if (options.length === 0) {
+                        qText += line + " ";
+                    }
+                }
+            }
+            
+            if (options.length > 0) {
+                html += `<div class="quiz-question" id="q-${eventIndex}-${qIdx}">
+                    <div class="q-text"><strong>Q${qIdx+1}.</strong> ${marked.parseInline(qText)}</div>
+                    <div class="q-options">
+                        ${options.map((opt) => {
+                            const letter = opt.charAt(0);
+                            const isCorrect = (letter === correctLetter);
+                            const text = opt.substring(2).trim();
+                            return `<div class="q-option" onclick="handleQuizClick(this, ${isCorrect}, '${escHtml(explanation).replace(/'/g, "\\\\'")}')">
+                                <span class="opt-letter">${letter})</span> ${escHtml(text)}
+                            </div>`;
+                        }).join('')}
+                    </div>
+                    <div class="q-feedback" style="display:none; margin-top: 10px; padding: 12px; border-radius: 8px; font-size: .8rem; font-weight: 300; line-height: 1.5;"></div>
+                </div>`;
+            } else {
+                html += `<div class="markdown-body">${marked.parse('Q' + block)}</div>`;
+            }
+        });
+        html += '</div>';
+        return html;
+    }
+
+    function handleQuizClick(el, isCorrect, explanation) {
+        const parent = el.closest('.quiz-question');
+        const options = parent.querySelectorAll('.q-option');
+        options.forEach(opt => opt.style.pointerEvents = 'none');
+        
+        const feedback = parent.querySelector('.q-feedback');
+        feedback.style.display = 'block';
+        
+        if (isCorrect) {
+            el.style.background = 'rgba(45,158,110,.1)';
+            el.style.borderColor = 'var(--green)';
+            feedback.innerHTML = `<strong>Correct!</strong> ${explanation}`;
+            feedback.style.background = 'rgba(45,158,110,.08)';
+            feedback.style.color = 'var(--green)';
+            feedback.style.border = '1px solid rgba(45,158,110,.2)';
+        } else {
+            el.style.background = 'rgba(201,64,64,.08)';
+            el.style.borderColor = 'var(--red)';
+            feedback.innerHTML = `<strong>Incorrect.</strong> ${explanation}`;
+            feedback.style.background = 'rgba(201,64,64,.06)';
+            feedback.style.color = 'var(--red)';
+            feedback.style.border = '1px solid rgba(201,64,64,.2)';
+            
+            options.forEach(opt => {
+                if (opt.getAttribute('onclick').includes('true')) {
+                    opt.style.background = 'rgba(45,158,110,.1)';
+                    opt.style.borderColor = 'var(--green)';
+                }
+            });
+        }
+    }
+
+
+    async function runPipeline() {
+      const text = document.getElementById('inputText').value.trim();
+      if (!text) { showError('Please enter some content before generating.'); return; }
+
+      hideError();
+      const btn = document.getElementById('generateBtn');
+      btn.disabled = true; btn.classList.add('loading');
+
+      document.getElementById('blueprintCard').classList.remove('visible');
+      document.getElementById('contentSection').classList.remove('visible');
+      document.getElementById('studentSection').classList.remove('visible');
+      document.getElementById('refinedSection').classList.remove('visible');
+      [1, 2, 3, 4].forEach(n => setStep(n, 'idle', 'Waiting...'));
+
+      try {
+      setStep(1, 'active', 'Analysing content...');
+      const res1 = await fetch(`${API}/generate-blueprint`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ content: text })
+        });
+        if (!res1.ok) {
+          const errData = await res1.json().catch(() => ({}));
+          const errMsg = errData.detail ? JSON.stringify(errData.detail) : res1.statusText;
+          throw new Error(`Architecture Agent failed: ${errMsg}`);
+        }
+        const data1 = await res1.json();
+        const blueprint = data1.blueprint || data1;
+        lastBlueprint = blueprint;
+        setStep(1, 'done', 'Blueprint ready');
+        renderBlueprint(blueprint);
+
+        setStep(2, 'active', 'Drafting and refining course events simultaneously…');
+        setStep(3, 'active', 'Running student evaluation loops in background…');
+        showSkeletons();
+
+        const res2 = await fetch(`${API}/generate-end-to-end`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(blueprint)
+        });
+        if (!res2.ok) {
+          const err = await res2.json().catch(() => ({ detail: 'Unknown error' }));
+          throw new Error(`Pipeline failed: ${JSON.stringify(err.detail)}`);
+        }
+        const data3 = await res2.json();
+        lastCourseData = data3.final_course_content;
+
+        setStep(2, 'done', 'Drafting complete');
+        const passStatus = data3.failure_log.overall_passed ? '[Pass]' : '[Attention]';
+        setStep(3, 'done', `${passStatus} Evaluation loop finished`);
+        setStep(4, 'done', `${data3.final_course_content.content.length} polished events ready`);
+
+        renderContent(data3.final_course_content);
+        document.getElementById('downloadPdfBtn').style.display = 'block';
+        document.getElementById('studentSection').style.display = 'block';
+        renderEvaluation(data3);
+      } catch (err) {
+        showError(err.message);
+        [1, 2, 3, 4].forEach(n => {
+          const el = document.getElementById(`step${n}Icon`);
+          if (el.classList.contains('active')) setStep(n, 'error', 'Failed');
+        });
+      } finally {
+        btn.disabled = false; btn.classList.remove('loading');
+      }
+    }
+
+    function downloadCoursePDF() {
+      if (!lastCourseData || !lastBlueprint) return;
+      
+      const element = document.createElement('div');
+      element.className = 'markdown-body';
+      element.style.padding = '40px';
+      element.style.background = '#fff';
+      element.style.color = '#000';
+      
+      let html = `<h1 style="text-align:center; font-family:serif; color: #2a2118; margin-bottom: 5px;">PADH·AI</h1>`;
+      html += `<p style="text-align:center; font-size: 0.8rem; color: #666; margin-bottom: 30px;">Intelligent Course Design</p>`;
+      html += `<h2 style="text-align:center; font-family:sans-serif; color: #5b4fcf; margin-bottom: 10px;">${lastBlueprint.course_title || 'Course Material'}</h2>`;
+      html += `<div style="text-align:center; margin-bottom: 40px; font-size: 0.9rem;">`;
+      html += `<p><strong>Prerequisites:</strong> ${(lastBlueprint.prerequisites || []).join(', ') || 'None'}</p>`;
+      html += `</div>`;
+      html += `<hr style="border: 0; border-top: 1px solid #eee; margin-bottom: 40px;"/>`;
+      
+      lastCourseData.content.forEach((ev, i) => {
+          html += `<div style="page-break-inside: avoid; margin-bottom: 50px;">`;
+          html += `<h3 style="color:#5b4fcf; border-bottom: 1px solid #f0ede7; padding-bottom: 8px;">Event ${i+1}: ${ev.title}</h3>`;
+          html += `<p style="font-size: 0.85rem; color: #666;"><strong>Format:</strong> ${ev.output_format} | <strong>Duration:</strong> ${ev.estimated_duration}</p>`;
+          html += `<div style="margin-top: 15px; font-size: 0.95rem; line-height: 1.6;">${marked.parse(ev.content)}</div>`;
+          html += `</div>`;
+      });
+
+      element.innerHTML = html;
+      
+      const opt = {
+        margin:       0.5,
+        filename:     `${(lastBlueprint.course_title || 'course').replace(/\s+/g, '_')}.pdf`,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true },
+        jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+      };
+
+      html2pdf().set(opt).from(element).save();
+    }
+
+    function renderEvaluation(data) {
+      const fl = data.failure_log;
+      document.getElementById('evalPassed').textContent = fl.passed_events;
+      document.getElementById('evalFailed').textContent = fl.failed_events;
+      document.getElementById('evalRate').textContent = Math.round(fl.pass_rate * 100) + '%';
+      document.getElementById('evalSummary').textContent = fl.summary;
+
+      const container = document.getElementById('attemptCards');
+      container.innerHTML = (data.attempts || []).map((a, i) => {
+        const passClass = a.passed ? 'pass' : 'fail';
+        const scoreStr = Math.round(a.comprehension_score * 100) + '%';
+        const gapCount = a.concept_gaps ? a.concept_gaps.length : 0;
+        const bodyId = `attempt-body-${i}`;
+        const gaps = (a.concept_gaps || []).map(g => `
       <div class="gap-item">
         <strong>⚡ ${escHtml(g.concept)}</strong> — ${escHtml(g.reason)}
         ${g.excerpt ? `<div class="excerpt">"${escHtml(g.excerpt)}"</div>` : ''}
       </div>`).join('');
-    return `
+        return `
       <div class="attempt-card">
         <div class="attempt-header" onclick="toggleAttempt(${i})">
           <div class="score-badge ${passClass}">${scoreStr}</div>
           <div class="attempt-info">
             <div class="attempt-title">${escHtml(a.title)}</div>
             <div class="attempt-meta">
-              <span>${a.passed ? '✅ Passed' : '❌ Failed'}</span>
-              ${gapCount > 0 ? `<span class="gap-count">${gapCount} gap${gapCount>1?'s':''}</span>` : ''}
+              <span>${a.passed ? '✓ Passed' : '✗ Failed'}</span>
+              ${gapCount > 0 ? `<span class="gap-count">${gapCount} gap${gapCount > 1 ? 's' : ''}</span>` : ''}
               <span>${escHtml(a.output_format)}</span>
             </div>
           </div>
@@ -497,78 +1406,75 @@ function renderEvaluation(data) {
         </div>
         <div class="attempt-body" id="${bodyId}">
           <div class="attempt-section">
-            <div class="attempt-section-title">📝 Student's Answer</div>
+            <div class="attempt-section-title">Student's Answer</div>
             <div class="attempt-text">${escHtml(a.student_answer)}</div>
           </div>
           <div class="attempt-section">
-            <div class="attempt-section-title">💬 Tutor Feedback</div>
+            <div class="attempt-section-title">Tutor Feedback</div>
             <div class="attempt-text">${escHtml(a.feedback)}</div>
           </div>
           ${gapCount > 0 ? `
           <div class="attempt-section">
-            <div class="attempt-section-title">🔍 Concept Gaps (${gapCount})</div>
+            <div class="attempt-section-title">Concept Gaps (${gapCount})</div>
             <div class="gap-list">${gaps}</div>
           </div>` : ''}
         </div>
       </div>`;
-  }).join('');
+      }).join('');
+      document.getElementById('studentSection').classList.add('visible');
+    }
 
-  document.getElementById('studentSection').classList.add('visible');
-}
+    function toggleAttempt(i) {
+      const body = document.getElementById(`attempt-body-${i}`);
+      const icon = document.getElementById(`atoggle-${i}`);
+      if (!body) return;
+      const open = body.classList.contains('open');
+      body.classList.toggle('open', !open);
+      icon.classList.toggle('open', !open);
+    }
 
-function toggleAttempt(i) {
-  const body = document.getElementById(`attempt-body-${i}`);
-  const icon = document.getElementById(`atoggle-${i}`);
-  if (!body) return;
-  const open = body.classList.contains('open');
-  body.classList.toggle('open', !open);
-  icon.classList.toggle('open', !open);
-}
-
-function renderRefined(data) {
-  const container = document.getElementById('refinedCards');
-  container.innerHTML = (data.refined_events || []).map((ev, i) => {
-    const f = fmtClass(ev.output_format);
-    const icon = FORMAT_ICONS[ev.output_format] || '📄';
-    const bodyId  = `rbody-${i}`;
-    const iconId  = `rtoggle-${i}`;
-    return `
+    function renderRefined(data) {
+      const container = document.getElementById('refinedCards');
+      container.innerHTML = (data.refined_events || []).map((ev, i) => {
+        const f = fmtClass(ev.output_format);
+        const icon = FORMAT_ICONS[ev.output_format] || '📄';
+        const bodyId = `rbody-${i}`;
+        const iconId = `rtoggle-${i}`;
+        return `
       <div class="content-card">
         <div class="content-card-header" onclick="toggleRefined(${i})">
           <div class="event-badge fmt-${f}">${ev.event_id}</div>
           <div class="card-title">
             <div class="main-title">${escHtml(ev.title)}</div>
             <div class="sub">
-              <span class="refined-badge">✨ Refined</span>
+              <span class="refined-badge">✦ Refined</span>
               <span class="format-pill pill-${f}">${icon} ${ev.output_format}</span>
             </div>
           </div>
           <div class="toggle-icon" id="${iconId}">▼</div>
         </div>
         <div class="content-body" id="${bodyId}">
-          <div class="refined-notes">📋 ${escHtml(ev.refinement_notes)}</div>
+          <div class="refined-notes">${escHtml(ev.refinement_notes)}</div>
           <div class="objective-bar">🎯 ${escHtml(ev.learning_objective)}</div>
           <pre>${escHtml(ev.content)}</pre>
         </div>
       </div>`;
-  }).join('');
+      }).join('');
+      document.getElementById('refinedSection').classList.add('visible');
+    }
 
-  document.getElementById('refinedSection').classList.add('visible');
-}
+    function toggleRefined(i) {
+      const body = document.getElementById(`rbody-${i}`);
+      const icon = document.getElementById(`rtoggle-${i}`);
+      if (!body) return;
+      const open = body.classList.contains('open');
+      body.classList.toggle('open', !open);
+      icon.classList.toggle('open', !open);
+    }
 
-function toggleRefined(i) {
-  const body = document.getElementById(`rbody-${i}`);
-  const icon = document.getElementById(`rtoggle-${i}`);
-  if (!body) return;
-  const open = body.classList.contains('open');
-  body.classList.toggle('open', !open);
-  icon.classList.toggle('open', !open);
-}
-
-// Allow Ctrl+Enter to submit
-document.addEventListener('keydown', e => {
-  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') runPipeline();
-});
-</script>
+    document.addEventListener('keydown', e => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') runPipeline();
+    });
+  </script>
 </body>
 </html>

@@ -5,7 +5,7 @@ from openai import OpenAI
 from dotenv import load_dotenv
 from architect_agent.app.prompts import (
     ARCHITECT_SYSTEM_PROMPT, 
-    STEM_ADAPTATION, 
+    MATH_ADAPTATION, 
     CODE_ADAPTATION, 
     CONCEPT_ADAPTATION,
     REFINER_SYSTEM_PROMPT
@@ -33,7 +33,7 @@ def fetch_technical_context(topic: str, is_code: bool = False) -> str:
         try:
             # 1. Tailor the query based on topic type
             if is_code:
-                query = f"{topic} library python documentation StateGraph add_node State TypedDict code example"
+                query = f"{topic} programming framework documentation core concepts code example"
             else:
                 query = f"{topic} core concepts laws principles scientific overview"
 
@@ -63,7 +63,24 @@ def fetch_technical_context(topic: str, is_code: bool = False) -> str:
 
 
 def clean_json_output(content: str) -> str:
-    return re.sub(r"```json|```", "", content).strip()
+    """
+    Finds the first '{' and last '}' to extract the JSON object,
+    handling cases where the LLM might include preamble or postamble text.
+    Also fixes common JSON errors like unescaped quotes in strings.
+    """
+    # 1. Extract the block between the first { and last }
+    match = re.search(r'(\{.*\})', content, re.DOTALL)
+    if not match:
+        # Fallback to the original logic if no braces found
+        return re.sub(r"```json|```", "", content).strip()
+    
+    extracted = match.group(1)
+    
+    # 2. Basic cleanup of common LLM artifacts
+    # Strip unescaped control characters (common with some models)
+    extracted = re.sub(r'[\x00-\x1F\x7F]', '', extracted)
+    
+    return extracted.strip()
 
 
 def validate_blueprint(data: dict) -> bool:
@@ -90,6 +107,13 @@ def normalize_output(data: dict, user_input: str) -> dict:
         if "assessment" not in data:
             data["assessment"] = ""
 
+        # Sanitize event fields to ensure they are strings
+        for event in data.get("events", []):
+            for field in ["title", "instruction", "example", "learning_objective", "output_format", "estimated_duration", "technical_depth"]:
+                if field in event and not isinstance(event[field], str):
+                    import json
+                    event[field] = json.dumps(event[field], ensure_ascii=False)
+
     return data
 
 
@@ -109,14 +133,15 @@ def refine_prompt(user_input: str) -> tuple[str, str]:
             temperature=0.0
         )
         content = response.choices[0].message.content.strip()
+        content = clean_json_output(content)
+        parsed = json.loads(content)
         
-        # Extract Category (e.g., [CATEGORY: CODE])
-        cat_match = re.search(r"Category:\s*\[?(\w+)\]?", content, re.IGNORECASE)
-        category = cat_match.group(1).lower() if cat_match else "concept"
+        status = parsed.get("status", "ACCEPT").lower()
+        if status == "reject":
+            return "reject", parsed.get("expanded_request", "Topic rejected.")
         
-        # Extract Expanded Request
-        req_match = re.search(r"Expanded Request:\s*(.*)", content, re.DOTALL | re.IGNORECASE)
-        refined = req_match.group(1).strip() if req_match else content
+        category = parsed.get("category", "CONCEPT").lower()
+        refined = parsed.get("expanded_request", user_input)
         
         print(f"[REFINER] Category: {category} | Refined: {refined[:100]}...")
         return category, refined
@@ -133,9 +158,8 @@ def generate_blueprint(user_input: str):
         # 2. Domain Guard: Reject non-CS topics
         if category == "reject":
             return {
-                "course_title": "Domain Limitation",
-                "rejection_message": refined_input,
-                "status": "rejected"
+                "error": "Domain Limitation",
+                "details": refined_input
             }
 
         # 3. Select the right adaptation block based on semantic category
@@ -143,12 +167,12 @@ def generate_blueprint(user_input: str):
             adaptation = CODE_ADAPTATION
             topic_type_label = "PROGRAMMING/FRAMEWORK"
         elif category == "math":
-            adaptation = STEM_ADAPTATION
-            topic_type_label = "STEM/FORMULA-BASED"
+            adaptation = MATH_ADAPTATION
+            topic_type_label = "MATH-BASED CS"
         else:
-            # For humanities, arts, or explicit 'no formula' requests
+            # For conceptual topics
             adaptation = CONCEPT_ADAPTATION
-            topic_type_label = "CONCEPTUAL/SOFT-SKILLS"
+            topic_type_label = "CONCEPTUAL CS"
 
         # 3. Fetch dynamic technical context
         technical_context = fetch_technical_context(refined_input, is_code=(category == "code"))

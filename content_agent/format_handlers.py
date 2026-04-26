@@ -72,7 +72,7 @@ def build_objectives_list_prompt(event) -> Tuple[str, str]:
         "- Write a one-sentence course overview paragraph.\n"
         "- Then list exactly 5-7 learning objectives using Bloom's taxonomy action verbs "
         "(e.g., Identify, Explain, Apply, Analyse, Design, Evaluate).\n"
-        "- Format each objective as: '• [Verb] [specific skill or knowledge]'\n"
+        "- Format each objective as: '- [Verb] [specific skill or knowledge]'\n"
         "- After the list, write a 2-sentence paragraph on how these objectives connect to real-world practice.\n"
         "- Total length: 150-250 words.\n"
         "- Return ONLY the objectives content. No JSON wrappers."
@@ -102,17 +102,17 @@ def build_quiz_prompt(event) -> Tuple[str, str]:
         "   B) [Option B]\n"
         "   C) [Option C]\n"
         "   D) [Option D]\n"
-        "✅ Correct Answer: [Letter]) [Brief explanation – 1-2 sentences]\n\n"
-        "Topics must cover: Python data structures, basic AI/ML concepts, and OOP principles.\n"
+        "Correct Answer: [Letter]) [Brief explanation – 1-2 sentences]\n\n"
+        "CRITICAL INSTRUCTION: The questions MUST test the underlying PREREQUISITES and fundamental concepts needed to understand the course topic, NOT the course topic itself. Do not teach or test the core subject of the course. Test only what the student should already know before taking this course.\n"
         "Questions must progress from recall → understanding → simple application.\n"
         "Return ONLY the quiz. No intro paragraph. No JSON wrappers."
     )
     user = (
-        f"Course: {event.title}\n\n"
-        f"Instruction: {event.instruction}\n\n"
-        f"Example topics: {event.example}\n\n"
+        f"Course Topic: {event.title} (Do NOT test this topic directly! Test its prerequisites)\n\n"
+        f"Instruction (Focus on these fundamentals): {event.instruction}\n\n"
+        f"Example prerequisite topics: {event.example}\n\n"
         f"Learning Objective: {event.learning_objective}\n\n"
-        "Generate the 5-question prerequisite quiz now."
+        "Generate the 5-question prerequisite diagnostic quiz now."
     )
     return system, user
 
@@ -123,15 +123,14 @@ def build_quiz_prompt(event) -> Tuple[str, str]:
 
 def build_lecture_with_formula_prompt(event) -> Tuple[str, str]:
     system = (
-        "You are a senior AI engineer delivering a technical lecture on LangChain. "
+        "You are a senior technical instructor delivering a lecture on the core framework or concept. "
         f"Technical depth: {event.technical_depth}. {_depth(event.technical_depth)}\n\n"
         "OUTPUT RULES:\n"
         "Structure the lecture EXACTLY as follows:\n\n"
         "## Concept Overview\n"
         "[2-3 paragraph explanation of the core concept]\n\n"
         "## Core Components\n"
-        "[Explain each LangChain component relevant to this event: "
-        "LLMs, Chains, Prompts, Memory, Agents, Tools, Retrievers. "
+        "[Explain each component or step relevant to this event. "
         "Use sub-bullets for properties/use-cases]\n\n"
         "## The Framework Formula\n"
         "[Describe the end-to-end development workflow as a numbered sequence. "
@@ -207,7 +206,7 @@ def build_practice_problem_prompt(event) -> Tuple[str, str]:
         "[What the learner must submit/produce: architecture diagram description, "
         "pseudo-code, configuration decisions, etc.]\n\n"
         "## Hints (Optional)\n"
-        "[2-3 non-spoiler hints pointing to relevant LangChain concepts]\n\n"
+        "[2-3 non-spoiler hints pointing to relevant concepts]\n\n"
         "Total length: 300-450 words.\n"
         "Return ONLY the practice problem. No JSON wrappers."
     )
@@ -262,7 +261,7 @@ def build_feedback_rubric_prompt(event) -> Tuple[str, str]:
 
 def build_assessment_task_prompt(event) -> Tuple[str, str]:
     system = (
-        "You are designing a comprehensive final assessment for an advanced LangChain course. "
+        "You are designing a comprehensive final assessment for an advanced technical course. "
         f"Technical depth: {event.technical_depth}. {_depth(event.technical_depth)}\n\n"
         "OUTPUT RULES:\n"
         "Structure the assessment EXACTLY as follows:\n\n"
@@ -305,11 +304,11 @@ def build_reflection_essay_prompt(event) -> Tuple[str, str]:
         "OUTPUT RULES:\n"
         "Structure the reflection essay prompt EXACTLY as follows:\n\n"
         "## Personal Application Challenge\n"
-        "[2-3 sentence framing of the challenge: apply LangChain to their own organisation/context]\n\n"
+        "[2-3 sentence framing of the challenge: apply the concepts to their own organisation/context]\n\n"
         "## Reflection Prompts\n"
         "Provide 5 open-ended reflection questions that guide the essay:\n"
         "1. [Question about identifying a real problem]\n"
-        "2. [Question about which LangChain components they would use and why]\n"
+        "2. [Question about which specific components or techniques they would use and why]\n"
         "3. [Question about challenges and how they would overcome them]\n"
         "4. [Question about measuring success/impact]\n"
         "5. [Question about what they learned about themselves as a builder]\n\n"

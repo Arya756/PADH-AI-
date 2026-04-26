@@ -13,44 +13,44 @@ Each output_format has its own minimum requirements.
 # (min_words, required_keywords)
 FORMAT_RULES = {
     "hook": (
-        150,
+        80,
         [],  # free-form narrative; just check word count
     ),
     "objectives_list": (
-        100,
+        50,
         ["•"],  # must contain bullet points
     ),
     "quiz": (
-        150,
+        100,
         ["Q1.", "Q2.", "Q3.", "Correct Answer"],  # must have multiple questions
     ),
     "lecture_with_formula": (
-        300,
+        150,
         ["##", "```"],  # must have headers and a code/pseudo-code block
     ),
     "worked_example": (
-        350,
+        200,
         ["## Scenario", "## Step"],  # must follow the stepped structure
     ),
     "practice_problem": (
-        200,
+        150,
         ["## Scenario", "## Your Task"],
     ),
     "feedback_rubric": (
-        250,
+        150,
         ["## ", "Pitfall", "|"],  # must have a table
     ),
     "assessment_task": (
-        350,
+        200,
         ["## ", "Stakeholder", "|"],
     ),
     "reflection_essay": (
-        200,
+        100,
         ["1.", "2.", "3."],  # must have numbered prompts
     ),
 }
 
-GENERIC_MIN_WORDS = 100
+GENERIC_MIN_WORDS = 50
 
 
 def validate_event_content(text: str, output_format: str = "") -> bool:

@@ -113,3 +113,7 @@ class EvaluationResponse(BaseModel):
         description="Pass rate after optional refinement (same as original if no refinement needed)"
     )
     message: str = Field(..., description="Human-readable summary of the evaluation outcome")
+    final_course_content: CourseContent = Field(
+        ...,
+        description="The completely refined and polished course content to be shown to the user."
+    )
