@@ -5,6 +5,4 @@ openai
 tavily-python
 pydantic
 python-dotenv
-sentence-transformers
-faiss-cpu
 httpx
